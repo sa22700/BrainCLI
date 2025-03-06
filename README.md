@@ -11,8 +11,11 @@ BrainCLI on komentorivikäyttöliittymä tekoälymoottorille, joka osaa hakea va
 ---
 
 ** 📥 Asennus ja käyttö
+
 ** 1️⃣ Kloonaa repository:
+
 git clone https://github.com/sa22700/BrainCLI.git
+
 cd BrainCLI
 
 ---
@@ -69,8 +72,11 @@ BrainCLI is a command-line interface for an AI engine that can retrieve answers,
 ---
 
 ** 📥 Installation & Usage
+
 ** 1️⃣ Clone the repository:
+
 git clone https://github.com/sa22700/BrainCLI.git
+
 cd BrainCLI
 
 --
