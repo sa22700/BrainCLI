@@ -14,73 +14,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import asyncio
+import os
 import sys
-import time
-from AIEngine import AIEngine
-from DataManager import SaveToFile
-from MatrixArray import BrainMatrix
 
-class Program:
-    def __init__(self):
-        self.ai_engine = AIEngine()
-        self.saver = SaveToFile("braindata.pkl")
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-    @staticmethod
-    def slow_type(text, delay=0.05):
-        for char in text:
-            sys.stdout.write(char)
-            sys.stdout.flush()
-            time.sleep(delay)
-        print()
+import asyncio
+from BrainCLI.BrainCLI_EN.Main_EN import Program as Program_EN
+from BrainCLI.BrainCLI_FI.Main_FI import Program as Program_FI
 
-    async def run(self):
-        try:
-            self.slow_type("Hei! Minä olen BrainCLI.\nKysy mitä tahansa!")
-            while True:
-                user_input = input("\n> ").strip().lower()
-                if not user_input:
-                    self.slow_type("Et syöttänyt mitään. Kokeile uudestaan.")
-                    continue
+def main():
+    choice = input("Which one BrainCLI you want to drive (EN/FI): ").strip().lower()
 
-                if user_input in ["lopeta", "poistu", "q"]:
-                    self.slow_type("Ohjelma suljetaan. Kiitos käytöstä!")
-                    break
+    if choice == "en":
+        asyncio.run(Program_EN().run())
+    elif choice == "fi":
+        asyncio.run(Program_FI().run())
+    else:
+        print("Invalid choice. Please try again.")
 
-                else:
-                    self.handle_question(user_input)
-
-        except KeyboardInterrupt:
-            self.slow_type("\nOhjelma keskeytettiin. Kiitos käytöstä!")
-
-        except Exception as e:
-            print(f"Virhe ohjelman suorittamisessa: {e}")
-
-    def handle_question(self, question):
-        self.slow_type("Analysoin kysymystäsi...")
-        try:
-            ai_response = self.ai_engine.get_response(question)
-
-            if isinstance(ai_response, BrainMatrix):
-                try:
-                    if (isinstance(ai_response.data, list)
-                            and len(ai_response.data) > 0
-                            and isinstance(ai_response.data[0], list)):
-                        ai_response = ai_response.data[0][0]
-
-                    else:
-                        ai_response = "En saanut ennustetta"
-
-                except Exception as e:
-                    ai_response = f"Virhe BrainMatrixin käsittelyssä: {e}"
-            self.slow_type(str(ai_response))
-
-        except Exception as e:
-            print(f"Kysymyksen käsittely epäonnistui: {e}")
-
-async def main():
-    app = Program()
-    await app.run()
-
-if __name__ == "__main__":
-    asyncio.run(main())
+if __name__=="__main__":
+    main()
