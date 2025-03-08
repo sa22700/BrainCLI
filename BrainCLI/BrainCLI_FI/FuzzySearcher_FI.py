@@ -14,65 +14,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import difflib
 from BrainCLI.BrainCLI_FI.Utils_FI import normalize_text
-
 
 class FuzzySearch:
     def __init__(self, ai_engine):
         self.ai_engine = ai_engine
-
-    @staticmethod
-    def levenshteindistance(source, target):
-        try:
-            if not source or not target:
-                return float('inf')
-
-            source = normalize_text(source)
-            target = normalize_text(target)
-            m, n = len(source), len(target)
-
-            if m < n:
-                source, target = target, source
-                m, n = n, m
-            prev_row = list(range(n + 1))
-
-            for i in range(1, m + 1):
-                curr_row = [i] + [0] * n
-                for j in range(1, n + 1):
-                    cost = 0 \
-                        if source[i - 1] == target[j - 1] \
-                        else 1
-                    curr_row[j] = min(
-                        prev_row[j] + 1,
-                        curr_row[j - 1] + 1,
-                        prev_row[j - 1] + cost)
-                prev_row = curr_row
-            return prev_row[-1]
-
-        except Exception as e:
-            print(f"Virhe Levenshtein-etäisyyden laskennassa: {e}")
-            return float('inf')
 
     def performfuzzysearch(self, query, questions):
         try:
             if not questions:
                 return None
 
-            query = normalize_text(query)
-            distances = [
-                (question, self.levenshteindistance(query, normalize_text(question)))
-                for question in questions
-                if question]
+            query_norm = normalize_text(query)
+            normalized_questions = [normalize_text(q) for q in questions if q]
+            matches = difflib.get_close_matches(query_norm, normalized_questions, n=1, cutoff=0.8)
 
-            if not distances:
-                return None
-
-            best_match, best_distance = min(distances, key=lambda x: x[1])
-            max_distance_threshold = max(2, int(len(query) * 0.2))
-
-            if best_distance > max_distance_threshold:
-                return None
-            return best_match
+            if matches:
+                best_match_norm = matches[0]
+                index = normalized_questions.index(best_match_norm)
+                return questions[index]
+            return None
 
         except Exception as e:
             print(f"Virhe fuzzy-haussa: {e}")

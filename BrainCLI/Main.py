@@ -16,22 +16,33 @@ limitations under the License.
 
 import os
 import sys
-
+import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import asyncio
 from BrainCLI.BrainCLI_EN.Main_EN import Program as Program_EN
 from BrainCLI.BrainCLI_FI.Main_FI import Program as Program_FI
 
-def main():
-    choice = input("Which one BrainCLI you want to drive (EN/FI): ").strip().lower()
+class Main:
 
-    if choice == "en":
-        asyncio.run(Program_EN().run())
-    elif choice == "fi":
-        asyncio.run(Program_FI().run())
-    else:
-        print("Invalid choice. Please try again.")
+    @staticmethod
+    def slow_type(text, delay=0.05):
+        for char in text:
+            sys.stdout.write(char)
+            sys.stdout.flush()
+            time.sleep(delay)
+        print()
+
+    @staticmethod
+    def main():
+        Main.slow_type("Which one BrainCLI you want to drive (EN/FI): ")
+        choice = input("> ").strip().lower()
+
+        if choice == "en":
+            asyncio.run(Program_EN().run())
+        elif choice == "fi":
+            asyncio.run(Program_FI().run())
+        else:
+            print("Invalid choice. Please try again.")
 
 if __name__=="__main__":
-    main()
+    Main.main()
