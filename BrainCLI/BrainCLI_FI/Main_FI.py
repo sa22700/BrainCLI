@@ -14,13 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import asyncio
 import os
 import sys
 import time
 from BrainCLI.BrainCLI_FI.AIEngine_FI import AIEngine
 from BrainCLI.BrainCLI_FI.DataManager_FI import SaveToFile
 from BrainCLI.BrainCLI_FI.MatrixArray_FI import BrainMatrix
+from BrainCLI.BrainCLI_FI.Degug_Log_FI import log_error
+from BrainCLI.BrainCLI_FI.Calculate_FI import calculate_expression, is_math_expression
 
 class Program:
     def __init__(self):
@@ -56,8 +57,17 @@ class Program:
 
         except Exception as e:
             print(f"Virhe ohjelman suorittamisessa: {e}")
+            log_error(f"Virhe ohjelman suorittamisessa: {e}")
 
     def handle_question(self, question):
+        if is_math_expression(question):
+            self.slow_type("Näyttää siltä, että syötteessäsi on matemaattinen laskutoimitus.\nHaluatko, että lasken sen puolestasi? (k/e)")
+            confirmation = input("> ").strip().lower()
+            if confirmation.startswith("k"):
+                result = calculate_expression(question)
+                self.slow_type(f"Tulos: {result}")
+                return
+
         self.slow_type("Analysoin kysymystäsi...")
         try:
             ai_response = self.ai_engine.get_response(question)
@@ -74,10 +84,12 @@ class Program:
 
                 except Exception as e:
                     ai_response = f"Virhe BrainMatrixin käsittelyssä: {e}"
+                    log_error(f"Virhe BrainMatrixin käsittelyssä: {e}")
             self.slow_type(str(ai_response))
 
         except Exception as e:
             print(f"Kysymyksen käsittely epäonnistui: {e}")
+            log_error(f"Kysymyksen käsittely epäonnistui: {e}")
 
 async def main():
     app = Program()

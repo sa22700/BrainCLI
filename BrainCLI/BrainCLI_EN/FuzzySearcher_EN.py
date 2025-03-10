@@ -16,6 +16,7 @@ limitations under the License.
 
 import difflib
 from BrainCLI.BrainCLI_FI.Utils_FI import normalize_text
+from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
 
 
 class FuzzySearch:
@@ -39,4 +40,5 @@ class FuzzySearch:
 
         except Exception as e:
             print(f"Error in fuzzy search: {e}")
+            log_error(e)
             return None

@@ -18,6 +18,7 @@ import os
 from BrainCLI.BrainCLI_FI.Utils_FI import normalize_text
 from BrainCLI.BrainCLI_FI.DataManager_FI import SaveToFile
 from BrainCLI.BrainCLI_FI.FuzzySearcher_FI import FuzzySearch
+from BrainCLI.BrainCLI_FI.Degug_Log_FI import log_error
 
 class AIEngine:
     def __init__(self, data_path = os.path.join(os.path.dirname(__file__), "braindata.fi.pkl")):
@@ -36,6 +37,7 @@ class AIEngine:
 
         except Exception as e:
             print(f"Virhe datan lataamisessa: {e}")
+            log_error(f"Virhe datan lataamisessa: {e}")
             return {"questions": [], "answers": []}
 
     def get_response(self, user_input):
@@ -75,4 +77,5 @@ class AIEngine:
 
         except Exception as e:
             print(f"Virhe vastauksen käsittelyssä: {e}")
+            log_error(f"Virhe vastauksen käsittelyssä: {e}")
             return "Jokin meni pieleen, en pysty käsittelemään kysymystäsi."

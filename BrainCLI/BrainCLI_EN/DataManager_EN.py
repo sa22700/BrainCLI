@@ -17,6 +17,7 @@ limitations under the License.
 import pickle
 import os
 from BrainCLI.BrainCLI_EN.Utils_EN import normalize_text
+from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
 
 class SaveToFile:
     def __init__(self, pickle_file=os.path.join(os.path.dirname(__file__), "braindata.en.pkl")):
@@ -36,6 +37,7 @@ class SaveToFile:
 
         except Exception as e:
             print(f"Error initializing files: {e}")
+            log_error(e)
 
     def load_pickle(self):
         try:
@@ -48,6 +50,7 @@ class SaveToFile:
             return data
         except Exception as e:
             print(f"Error loading Pickle-file: {e}")
+            log_error(e)
             return {"questions": [], "answers": []}
 
     def save_to_pickle(self, question, answer):
@@ -67,3 +70,4 @@ class SaveToFile:
 
         except Exception as e:
             print(f"Error saving to Pickle-file: {e}")
+            log_error(e)

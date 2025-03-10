@@ -17,6 +17,7 @@ limitations under the License.
 import pickle
 import os
 from BrainCLI.BrainCLI_FI.Utils_FI import normalize_text
+from BrainCLI.BrainCLI_FI.Degug_Log_FI import log_error
 
 class SaveToFile:
     def __init__(self, pickle_file=os.path.join(os.path.dirname(__file__), "braindata.fi.pkl")):
@@ -26,6 +27,7 @@ class SaveToFile:
 
         except Exception as e:
             print(f"Virhe SaveToFile-luokan alustuksessa: {e}")
+            log_error(e)
 
     def initialize_files(self):
         try:
@@ -36,6 +38,7 @@ class SaveToFile:
 
         except Exception as e:
             print(f"Virhe Pickle-tiedoston luonnissa: {e}")
+            log_error(e)
 
     def load_pickle(self):
         try:
@@ -46,8 +49,10 @@ class SaveToFile:
             if "questions" not in data or "answers" not in data:
                 return {"questions": [], "answers": []}
             return data
+
         except Exception as e:
             print(f"Virhe ladattaessa Pickle-tiedostoa: {e}")
+            log_error(e)
             return {"questions": [], "answers": []}
 
     def save_to_pickle(self, question, answer):
@@ -67,3 +72,4 @@ class SaveToFile:
 
         except Exception as e:
             print(f"Virhe tallennettaessa Pickle-tiedostoon: {e}")
+            log_error(e)

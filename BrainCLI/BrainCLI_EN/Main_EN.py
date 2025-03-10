@@ -14,13 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import asyncio
 import os
 import sys
 import time
 from BrainCLI.BrainCLI_EN.AIEngine_EN import AIEngine
 from BrainCLI.BrainCLI_EN.DataManager_EN import SaveToFile
 from BrainCLI.BrainCLI_EN.MatrixArray_EN import BrainMatrix
+from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
+from BrainCLI.BrainCLI_EN.Calculate_EN import calculate_expression, is_math_expression
 
 class Program:
     def __init__(self):
@@ -55,9 +56,18 @@ class Program:
             self.slow_type("\nThe program was interrupted. Thanks for using!")
 
         except Exception as e:
+            log_error(e)
             print(f"Error while running the program: {e}")
 
     def handle_question(self, question):
+        if is_math_expression(question):
+            self.slow_type("It looks like you have a mathematical expression in your question.\nDo you want me to calculate it for you? (y/n)")
+            confirmation = input("> ").strip().lower()
+            if confirmation.startswith("y"):
+                result = calculate_expression(question)
+                self.slow_type(f"Result: {result}")
+                return
+
         self.slow_type("Analyzing your question...")
         try:
             ai_response = self.ai_engine.get_response(question)
@@ -78,6 +88,7 @@ class Program:
 
         except Exception as e:
             print(f"Question processing failed: {e}")
+            log_error(e)
 
 async def main():
     app = Program()

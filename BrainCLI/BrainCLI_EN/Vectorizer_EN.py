@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
+
 class BrainVectorizer:
     def __init__(self, vector_size=300):
         self.vector_size = vector_size
@@ -45,4 +47,5 @@ class BrainVectorizer:
 
         except Exception as e:
             print(f"Error vectorizing text: {e}")
+            log_error(f"Error vectorizing text: {e}")
             return [0.0] * self.vector_size

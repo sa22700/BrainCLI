@@ -23,6 +23,9 @@ import BrainCLI.BrainCLI_FI.Main_FI
 import BrainCLI.BrainCLI_FI.Predict_FI
 import BrainCLI.BrainCLI_FI.Utils_FI
 import BrainCLI.BrainCLI_FI.Vectorizer_FI
+import BrainCLI.BrainCLI_FI.Degug_Log_FI
+import BrainCLI.BrainCLI_FI.Calculate_FI
+
 import BrainCLI.BrainCLI_EN.AIEngine_EN
 import BrainCLI.BrainCLI_EN.MatrixArray_EN
 import BrainCLI.BrainCLI_EN.FuzzySearcher_EN
@@ -32,5 +35,7 @@ import BrainCLI.BrainCLI_EN.Main_EN
 import BrainCLI.BrainCLI_EN.Predict_EN
 import BrainCLI.BrainCLI_EN.Utils_EN
 import BrainCLI.BrainCLI_EN.Vectorizer_EN
+import BrainCLI.BrainCLI_EN.Debug_Log_EN
+import BrainCLI.BrainCLI_EN.Calculate_EN
 
 __all__ = ["BrainCLI_FI", "BrainCLI_EN"]

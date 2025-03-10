@@ -15,6 +15,7 @@ limitations under the License.
 '''
 
 import unicodedata
+from BrainCLI.BrainCLI_FI.Degug_Log_FI import log_error
 
 def normalize_text(text):
     try:
@@ -26,4 +27,5 @@ def normalize_text(text):
 
     except Exception as e:
         print(f"Virhe tekstin normalisoinnissa: {e}")
+        log_error(e)
         return text

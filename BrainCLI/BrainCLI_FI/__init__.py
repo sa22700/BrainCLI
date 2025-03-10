@@ -23,5 +23,7 @@ import BrainCLI.BrainCLI_FI.Main_FI
 import BrainCLI.BrainCLI_FI.Predict_FI
 import BrainCLI.BrainCLI_FI.Utils_FI
 import BrainCLI.BrainCLI_FI.Vectorizer_FI
+import BrainCLI.BrainCLI_FI.Degug_Log_FI
+import BrainCLI.BrainCLI_FI.Calculate_FI
 
-__all__ = ["AIEngine_FI", "MatrixArray_FI", "FuzzySearcher_FI", "DataManager_FI", "Utils_FI", "Main_FI", "Predict_FI", "Utils_FI", "Vectorizer_FI"]
+__all__ = ["AIEngine_FI", "MatrixArray_FI", "FuzzySearcher_FI", "DataManager_FI", "Utils_FI", "Main_FI", "Predict_FI", "Utils_FI", "Vectorizer_FI", "Degug_Log_FI", "Calculate_FI"]

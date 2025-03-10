@@ -18,6 +18,7 @@ import os
 from BrainCLI.BrainCLI_EN.Utils_EN import normalize_text
 from BrainCLI.BrainCLI_EN.DataManager_EN import SaveToFile
 from BrainCLI.BrainCLI_EN.FuzzySearcher_EN import FuzzySearch
+from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
 
 class AIEngine:
     def __init__(self, data_path=os.path.join(os.path.dirname(__file__), "braindata.en.pkl")):
@@ -28,6 +29,7 @@ class AIEngine:
 
         except Exception as e:
             print(f"Error in AIEngine initialization: {e}")
+            log_error(e)
             self.data = {"questions": [], "answers": []}
 
     def load_data(self):
@@ -36,6 +38,7 @@ class AIEngine:
 
         except Exception as e:
             print(f"Error loading data: {e}")
+            log_error(e)
             return {"questions": [], "answers": []}
 
     def get_response(self, user_input):
@@ -75,4 +78,5 @@ class AIEngine:
 
         except Exception as e:
             print(f"Error by getting response: {e}")
+            log_error(e)
             return "Something went wrong, i can not handle your question."

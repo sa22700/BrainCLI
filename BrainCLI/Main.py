@@ -34,15 +34,18 @@ class Main:
 
     @staticmethod
     def main():
-        Main.slow_type("Which one BrainCLI you want to drive (EN/FI): ")
-        choice = input("> ").strip().lower()
+        while True:
+            Main.slow_type("Which one BrainCLI you want to drive (EN/FI): ")
+            choice = input("> ").strip().lower()
 
-        if choice == "en":
-            asyncio.run(Program_EN().run())
-        elif choice == "fi":
-            asyncio.run(Program_FI().run())
-        else:
-            print("Invalid choice. Please try again.")
+            if choice == "en":
+                asyncio.run(Program_EN().run())
+                break
+            elif choice == "fi":
+                asyncio.run(Program_FI().run())
+                break
+            else:
+                print("Invalid choice. Please try again.")
 
 if __name__=="__main__":
     Main.main()

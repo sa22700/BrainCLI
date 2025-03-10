@@ -23,5 +23,7 @@ import BrainCLI.BrainCLI_EN.Main_EN
 import BrainCLI.BrainCLI_EN.Predict_EN
 import BrainCLI.BrainCLI_EN.Utils_EN
 import BrainCLI.BrainCLI_EN.Vectorizer_EN
+import BrainCLI.BrainCLI_EN.Debug_Log_EN
+import BrainCLI.BrainCLI_EN.Calculate_EN
 
-__all__ = ["AIEngine_EN", "MatrixArray_EN", "FuzzySearcher_EN", "DataManager_EN", "Utils_EN", "Main_EN", "Predict_EN", "Utils_EN", "Vectorizer_EN"]
+__all__ = ["AIEngine_EN", "MatrixArray_EN", "FuzzySearcher_EN", "DataManager_EN", "Utils_EN", "Main_EN", "Predict_EN", "Utils_EN", "Vectorizer_EN", "Debug_Log_EN", "Calculate_EN"]

@@ -18,6 +18,7 @@ import pickle
 import os
 from BrainCLI.BrainCLI_FI.MatrixArray_FI import BrainNetwork, BrainLayer, BrainMatrix
 from BrainCLI.BrainCLI_FI.Vectorizer_FI import BrainVectorizer
+from BrainCLI.BrainCLI_FI.Degug_Log_FI import log_error
 
 class BrainPredictor:
     def __init__(self):
@@ -34,10 +35,12 @@ class BrainPredictor:
                 return pickle.load(f)
 
         except FileNotFoundError:
+            log_error("Pickle-tiedostoa ei löydy")
             return []
 
         except Exception as e:
             print(f"Virhe ladattaessa dataa: {e}")
+            log_error(e)
             return []
 
     def fuzzy_match(self, user_input):
@@ -81,4 +84,5 @@ class BrainPredictor:
             return {"prediction": prediction, "match": best_match, "response": response}
 
         except Exception as e:
+            log_error(e)
             return {"error": f"Virhe ennustuksessa: {e}"}
