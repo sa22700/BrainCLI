@@ -25,6 +25,16 @@ Jos käytät PyPy:tä, PowerShellin oletusmerkistö voi aiheuttaa virheitä ää
 
 Korjaa tämä muuttamalla PowerShell käyttämään UTF-8-koodausta pysyvästi.
 
+Text-Path $PROFILE
+
+Voit testata antaako tulokseksi True vai False, sillä jos tulos on True profiili on jo olemassa.
+
+Jos tulos on False, niin voit luoda sen komennolla.
+
+New-Item -Path $PROFILE -ItemType File -Force
+
+---
+
 Avaa PowerShellin profiilitiedosto.
 
 notepad $PROFILE
@@ -34,6 +44,7 @@ Jos tiedostoa ei ole, PowerShell luo sen automaattisesti.
 Lisää rivit:
 
 [Console]::InputEncoding = [System.Text.Encoding]::UTF8
+
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 Tallenna tiedosto ja sulje Muistio.
@@ -41,6 +52,22 @@ Tallenna tiedosto ja sulje Muistio.
 käynnistä powershell uudestaan.
 
 Nyt PowerShell käyttää aina UTF-8-koodausta, ja ääkköset pitäisi toimia oikein myös PyPy:llä.
+
+---
+
+Joskus on niin ettei käyttäjältä löydy riittäviä oikeuksia lisätä skriptiä profiiliin niin oikeuksia pitää muuttaa.
+
+Mene järjestelmä oikeuksilla powershelliin ja kirjoita.
+
+Get-ExecutionPolicy
+
+Jos tulos on restricted, niin powershell estää skriptit
+
+Voit kiertää tämän komennolla.
+
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+Nyt PowerShell käyttää aina UTF-8-koodausta, ja erikoismerkkien pitäisi toimia oikein PyPy:llä.
 
 ---
 
@@ -86,6 +113,16 @@ If you are using PyPy, PowerShell’s default encoding may cause issues with spe
 
 Fix this by forcing PowerShell to use UTF-8 permanently.
 
+Text-Path $PROFILE
+
+You can test whether it returns True or False. If the result is True, the profile already exists.
+
+If the result is False, you can create it with the following command.
+
+New-Item -Path $PROFILE -ItemType File -Force
+
+---
+
 Open PowerShell profile file
 
 notepad $PROFILE
@@ -95,11 +132,28 @@ If the file does not exist, PowerShell will create it automatically.
 Add these lines.
 
 [Console]::InputEncoding = [System.Text.Encoding]::UTF8
+
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 Save the file and close Notepad.
 
 Restart PowerShell.
+
+Now PowerShell always uses UTF-8 encoding, and special characters (such as ä and ö) should work correctly even with PyPy.
+
+---
+
+Sometimes, the user may not have sufficient permissions to add a script to the profile, so the permissions need to be changed.
+
+Open PowerShell with administrative privileges and enter the following command.
+
+Get-ExecutionPolicy
+
+If the result is Restricted, PowerShell is blocking scripts from running.
+
+You can bypass this restriction with the following command.
+
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 Now PowerShell will always use UTF-8, and special characters should work correctly in PyPy.
 
