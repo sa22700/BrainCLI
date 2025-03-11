@@ -1,7 +1,0 @@
-Virhe: Virhe ohjelman suorittamisessa: 
-Traceback (most recent call last):
-  File "C:\BrainCLI\BrainCLI\BrainCLI_FI\Main_FI.py", line 44, in run
-    user_input = input("\n> ").strip().lower()
-EOFError
-
-========================================
