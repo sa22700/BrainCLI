@@ -21,13 +21,19 @@ from BrainCLI.BrainCLI_EN.AIEngine_EN import AIEngine
 from BrainCLI.BrainCLI_EN.DataManager_EN import SaveToFile
 from BrainCLI.BrainCLI_EN.MatrixArray_EN import BrainMatrix
 from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
-from BrainCLI.BrainCLI_EN.Calculate_EN import calculate_expression, is_math_expression
-from BrainCLI.BrainCLI_EN.Randomizer_EN import get_random_fact, load_facts
+from BrainCLI.BrainCLI_EN.Calculate_EN import is_math_expression, command_calculate
+from BrainCLI.BrainCLI_EN.Randomizer_EN import command_random_fact
 
 class Program:
     def __init__(self):
         self.ai_engine = AIEngine()
         self.saver = SaveToFile(os.path.join(os.path.dirname(__file__), "braindata.en.pkl"))
+        self.commands = {
+            "count": command_calculate,
+            "calculate": command_calculate,
+            "fact": command_random_fact,
+            "trivia": command_random_fact,
+        }
 
     @staticmethod
     def slow_type(text, delay=0.05):
@@ -61,19 +67,32 @@ class Program:
             print(f"Error while running the program: {e}")
 
     def handle_question(self, question):
-        if "fact" in question or "trivia" in question:
-            facts = load_facts(os.path.join(os.path.dirname(__file__), "braindata.en.pkl"))
-            fact = get_random_fact(facts)
-            self.slow_type(f"Fact: {fact}")
-            return
+        try:
+            for command, function in self.commands.items():
+                if question.startswith(command):
+                    args = question[len(command):].strip()
+                    result = function(args) if args else function()
+                    self.slow_type(result)
+                    return
 
-        if is_math_expression(question):
-            self.slow_type("It looks like you have a mathematical expression in your question.\nDo you want me to calculate it for you? (y/n)")
-            confirmation = input("> ").strip().lower()
-            if confirmation.startswith("y"):
-                result = calculate_expression(question)
-                self.slow_type(f"Result: {result}")
-                return
+        except Exception as e:
+            print(f"Error while processing the question: {e}")
+            log_error(f"Error while processing the question: {e}")
+
+        try:
+            if is_math_expression(question):
+                if is_math_expression(question):
+                    self.slow_type("It looks like you have a mathematical expression in your question."
+                        "\nDo you want me to calculate it for you? (y/n)")
+                    confirmation = input("> ").strip().lower()
+                    if confirmation.startswith("k"):
+                        result = command_calculate(question)
+                        self.slow_type(result)
+                        return
+
+        except Exception as e:
+            print(f"Error while processing the question: {e}")
+            log_error(f"Error while processing the question: {e}")
 
         self.slow_type("Analyzing your question...")
         try:

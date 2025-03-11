@@ -39,3 +39,8 @@ def get_random_fact(facts):
     elif isinstance(facts, list) and facts:
         return random.choice(facts)
     return "Fact not found."
+
+def command_random_fact():
+    facts = load_facts(os.path.join(os.path.dirname(__file__), "braindata.en.pkl"))
+    fact = get_random_fact(facts)
+    return f"Fact: {fact}"

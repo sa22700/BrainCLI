@@ -39,3 +39,8 @@ def get_random_fact(facts):
     elif isinstance(facts, list) and facts:
         return random.choice(facts)
     return "Fakta tietoa ei löytynyt."
+
+def command_random_fact():
+    facts = load_facts(os.path.join(os.path.dirname(__file__), "braindata.fi.pkl"))
+    fact = get_random_fact(facts)
+    return f"Fakta: {fact}"

@@ -28,3 +28,7 @@ def calculate_expression(expression):
     except Exception as e:
         log_error(e)
         return f"Error: {e}"
+
+def command_calculate(user_input):
+    result = calculate_expression(user_input)
+    return f"Result: {result}"

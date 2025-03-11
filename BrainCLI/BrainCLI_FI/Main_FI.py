@@ -21,13 +21,19 @@ from BrainCLI.BrainCLI_FI.AIEngine_FI import AIEngine
 from BrainCLI.BrainCLI_FI.DataManager_FI import SaveToFile
 from BrainCLI.BrainCLI_FI.MatrixArray_FI import BrainMatrix
 from BrainCLI.BrainCLI_FI.Degug_Log_FI import log_error
-from BrainCLI.BrainCLI_FI.Calculate_FI import calculate_expression, is_math_expression
-from BrainCLI.BrainCLI_FI.Randomizer_FI import get_random_fact, load_facts
+from BrainCLI.BrainCLI_FI.Calculate_FI import is_math_expression, command_calculate
+from BrainCLI.BrainCLI_FI.Randomizer_FI import command_random_fact
+
 
 class Program:
     def __init__(self):
         self.ai_engine = AIEngine()
         self.saver = SaveToFile(os.path.join(os.path.dirname(__file__), "braindata.fi.pkl"))
+        self.commands = {
+            "laske": command_calculate,
+            "fakta": command_random_fact,
+            "trivia": command_random_fact,
+        }
 
     @staticmethod
     def slow_type(text, delay=0.05):
@@ -61,19 +67,31 @@ class Program:
             log_error(f"Virhe ohjelman suorittamisessa: {e}")
 
     def handle_question(self, question):
-        if "fakta" in question or "trivia" in question:
-            facts = load_facts(os.path.join(os.path.dirname(__file__), "braindata.fi.pkl"))
-            fact = get_random_fact(facts)
-            self.slow_type(f"Fakta: {fact}")
-            return
+        try:
+            for command, function in self.commands.items():
+                if question.startswith(command):
+                    args = question[len(command):].strip()
+                    result = function(args) if args else function()
+                    self.slow_type(result)
+                    return
 
-        if is_math_expression(question):
-            self.slow_type("Näyttää siltä, että syötteessäsi on matemaattinen laskutoimitus.\nHaluatko, että lasken sen puolestasi? (k/e)")
-            confirmation = input("> ").strip().lower()
-            if confirmation.startswith("k"):
-                result = calculate_expression(question)
-                self.slow_type(f"Tulos: {result}")
-                return
+        except Exception as e:
+            print(f"Virhe kysymyksen käsittelyssä: {e}")
+            log_error(f"Virhe kysymyksen käsittelyssä: {e}")
+        try:
+            if is_math_expression(question):
+                if is_math_expression(question):
+                    self.slow_type("Näyttää siltä, että syötteessäsi on matemaattinen laskutoimitus."
+                        "\nHaluatko, että lasken sen puolestasi? (k/e)")
+                    confirmation = input("> ").strip().lower()
+                    if confirmation.startswith("k"):
+                        result = command_calculate(question)
+                        self.slow_type(result)
+                        return
+
+        except Exception as e:
+            print(f"Virhe kysymyksen käsittelyssä: {e}")
+            log_error(f"Virhe kysymyksen käsittelyssä: {e}")
 
         self.slow_type("Analysoin kysymystäsi...")
         try:
