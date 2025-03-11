@@ -22,6 +22,7 @@ from BrainCLI.BrainCLI_EN.DataManager_EN import SaveToFile
 from BrainCLI.BrainCLI_EN.MatrixArray_EN import BrainMatrix
 from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
 from BrainCLI.BrainCLI_EN.Calculate_EN import calculate_expression, is_math_expression
+from BrainCLI.BrainCLI_EN.Randomizer_EN import get_random_fact, load_facts
 
 class Program:
     def __init__(self):
@@ -60,6 +61,12 @@ class Program:
             print(f"Error while running the program: {e}")
 
     def handle_question(self, question):
+        if "fact" in question or "trivia" in question:
+            facts = load_facts(os.path.join(os.path.dirname(__file__), "braindata.en.pkl"))
+            fact = get_random_fact(facts)
+            self.slow_type(f"Fact: {fact}")
+            return
+
         if is_math_expression(question):
             self.slow_type("It looks like you have a mathematical expression in your question.\nDo you want me to calculate it for you? (y/n)")
             confirmation = input("> ").strip().lower()

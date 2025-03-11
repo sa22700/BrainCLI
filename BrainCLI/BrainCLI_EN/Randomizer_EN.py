@@ -14,17 +14,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import re
+import os
+import random
+import pickle
 from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
 
-def is_math_expression(text):
-    return re.fullmatch(r"[-\d\s+*/().,^]+", text) is not None
-
-def calculate_expression(expression):
+def load_facts(filename=os.path.join(os.path.dirname(__file__), "braindata.en.pkl")):
     try:
-        expression = expression.replace('^', '**')
-        expression = expression.replace(',', '.')
-        return eval(expression, {"__builtins__": None}, {})
+        with open(filename, "rb") as file:
+            facts = pickle.load(file)
+        return facts
     except Exception as e:
+        print(f"Error loading facts: {e}")
         log_error(e)
-        return f"Error: {e}"
+        return []
+
+def get_random_fact(facts):
+    if isinstance(facts, dict) and "answers" in facts:
+        answers = facts["answers"]
+
+        if isinstance(answers, list) and answers:
+            return random.choice(answers)
+
+    elif isinstance(facts, list) and facts:
+        return random.choice(facts)
+    return "Fact not found."

@@ -22,6 +22,7 @@ from BrainCLI.BrainCLI_FI.DataManager_FI import SaveToFile
 from BrainCLI.BrainCLI_FI.MatrixArray_FI import BrainMatrix
 from BrainCLI.BrainCLI_FI.Degug_Log_FI import log_error
 from BrainCLI.BrainCLI_FI.Calculate_FI import calculate_expression, is_math_expression
+from BrainCLI.BrainCLI_FI.Randomizer_FI import get_random_fact, load_facts
 
 class Program:
     def __init__(self):
@@ -60,6 +61,12 @@ class Program:
             log_error(f"Virhe ohjelman suorittamisessa: {e}")
 
     def handle_question(self, question):
+        if "fakta" in question or "trivia" in question:
+            facts = load_facts(os.path.join(os.path.dirname(__file__), "braindata.fi.pkl"))
+            fact = get_random_fact(facts)
+            self.slow_type(f"Fakta: {fact}")
+            return
+
         if is_math_expression(question):
             self.slow_type("Näyttää siltä, että syötteessäsi on matemaattinen laskutoimitus.\nHaluatko, että lasken sen puolestasi? (k/e)")
             confirmation = input("> ").strip().lower()
