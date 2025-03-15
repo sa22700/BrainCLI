@@ -17,7 +17,7 @@ limitations under the License.
 import os
 import random
 import pickle
-from BrainCLI.BrainCLI_FI.Degug_Log_FI import log_error
+from BrainCLI.BrainCLI_FI.Debug_Log_FI import log_error
 
 def load_facts(filename=os.path.join(os.path.dirname(__file__), "braindata.fi.pkl")):
     try:
@@ -32,10 +32,8 @@ def load_facts(filename=os.path.join(os.path.dirname(__file__), "braindata.fi.pk
 def get_random_fact(facts):
     if isinstance(facts, dict) and "answers" in facts:
         answers = facts["answers"]
-
         if isinstance(answers, list) and answers:
             return random.choice(answers)
-
     elif isinstance(facts, list) and facts:
         return random.choice(facts)
     return "Fakta tietoa ei löytynyt."

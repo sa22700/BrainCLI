@@ -14,68 +14,45 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import os
-from BrainCLI.BrainCLI_FI.Utils_FI import normalize_text
 from BrainCLI.BrainCLI_FI.DataManager_FI import SaveToFile
 from BrainCLI.BrainCLI_FI.FuzzySearcher_FI import FuzzySearch
-from BrainCLI.BrainCLI_FI.Degug_Log_FI import log_error
+from BrainCLI.BrainCLI_FI.Vectorizer_FI import BrainVectorizer
+from BrainCLI.BrainCLI_FI.MatrixArray_FI import BrainNetwork, BrainLayer
+from BrainCLI.BrainCLI_FI.MarkovsChain_FI import build_markov_chain_from_data, generate_text
+from BrainCLI.BrainCLI_FI.Utils_FI import normalize_text
 
 class AIEngine:
-    def __init__(self, data_path = os.path.join(os.path.dirname(__file__), "braindata.fi.pkl")):
-        try:
-            self.data_manager = SaveToFile(data_path)
-            self.fuzzy_search = FuzzySearch(self)
-            self.data = self.load_data()
-
-        except Exception as e:
-            print(f"Virhe AIEngine-luokan alustuksessa: {e}")
-            self.data = {"questions": [], "answers": []}
-
-    def load_data(self):
-        try:
-            return self.data_manager.load_pickle()
-
-        except Exception as e:
-            print(f"Virhe datan lataamisessa: {e}")
-            log_error(f"Virhe datan lataamisessa: {e}")
-            return {"questions": [], "answers": []}
+    def __init__(self, data_path):
+        self.data_manager = SaveToFile(data_path)
+        self.data = self.data_manager.load_pickle()
+        self.vectorizer = BrainVectorizer()
+        self.fuzzy_search = FuzzySearch(self)
+        self.chain = build_markov_chain_from_data(data_path)
+        self.nn = BrainNetwork([BrainLayer(300, 5), BrainLayer(5, 1)])
+        self.vocabulary = None
+        self.context = []
 
     def get_response(self, user_input):
-        try:
-            user_input_norm = normalize_text(user_input)
-            data = self.data_manager.load_pickle()
-            normalized_questions = [normalize_text(q)
-                for q in data["questions"]]
+        user_input_norm = normalize_text(user_input)
+        questions_norm = [normalize_text(q) for q in self.data["questions"]]
+        if user_input_norm in questions_norm:
+            index = questions_norm.index(user_input_norm)
+            return self.data["answers"][index]
 
-            if user_input_norm in normalized_questions:
-                index = normalized_questions.index(user_input_norm)
-                return data["answers"][index] \
-                    if index < len(data["answers"]) \
-                    else "En löytänyt vastausta."
+        best_match = self.fuzzy_search.performfuzzysearch(user_input_norm, questions_norm)
+        if best_match:
+            index = questions_norm.index(best_match)
+            return self.data["answers"][index]
 
-            best_match = self.fuzzy_search.performfuzzysearch(user_input_norm, normalized_questions)
+        vector = self.vectorizer.vectorize_text(user_input_norm)
+        prediction = self.nn.array_predict([vector])
+        if prediction[0][0] > 0.5:
+            return "En osaa vastata varmasti, mutta neuroverkkoni arvioi asian olevan todennäköinen."
 
-            if best_match:
-                index = normalized_questions.index(best_match)
-                return data["answers"][index] \
-                    if index < len(data["answers"]) \
-                    else "En löytänyt vastausta."
+        first_word = user_input.split()[0] if user_input.split()[0] in self.chain else next(iter(self.chain))
+        return generate_text(self.chain, start_word=first_word, length=10)
 
-            print("En löytänyt vastausta tähän kysymykseen.")
-            user_answer = input("Haluatko lisätä vastauksen? (k/e): ").strip().lower()
-
-            if user_answer == "k":
-                new_answer = input("Syötä vastaus: ").strip()
-
-                if new_answer:
-                    self.data_manager.save_to_pickle(user_input, new_answer)
-                    print("Hienoa, kiitos tästä! Opin taas jotain uutta.")
-                    self.data = self.data_manager.load_pickle()
-
-                else:
-                    print("Tyhjä vastaus ei tallennettu.")
-
-        except Exception as e:
-            print(f"Virhe vastauksen käsittelyssä: {e}")
-            log_error(f"Virhe vastauksen käsittelyssä: {e}")
-            return "Jokin meni pieleen, en pysty käsittelemään kysymystäsi."
+    def update_knowledge(self, question, answer):
+        self.data_manager.save_to_pickle(question, answer)
+        self.data = self.data_manager.load_pickle()
+        self.chain = build_markov_chain_from_data(self.data_manager.pickle_file)

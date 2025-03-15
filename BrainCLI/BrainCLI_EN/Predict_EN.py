@@ -47,12 +47,10 @@ class BrainPredictor:
         user_input_norm = user_input.strip().lower()
         min_distance = float("inf")
         best_match = None
-
         for question in self.data:
             question_norm = question.strip().lower()
             distance = abs(len(user_input_norm) - len(question_norm)) + sum(a != b
                 for a, b in zip(user_input_norm, question_norm))
-
             if distance < min_distance:
                 min_distance = distance
                 best_match = question
@@ -62,7 +60,6 @@ class BrainPredictor:
         try:
             vector = self.vectorizer.vectorize_text(question)
             prediction = self.model.array_predict([vector])
-
             if isinstance(prediction, BrainMatrix):
                 prediction = prediction.to_list()
             elif isinstance(prediction, (int, float)):
@@ -73,14 +70,11 @@ class BrainPredictor:
                 prediction = [[float(x)] for x in prediction]
             elif not isinstance(prediction, list):
                 raise TypeError(f"Error array_predict: Expected list but got {type(prediction)}: {prediction}")
-
             best_match = self.fuzzy_match(question)
-
             if best_match:
                 response = self.data.get(best_match, "Could not find a response.")
             else:
                 response = "I don't know."
-
             return {"prediction": prediction, "match": best_match, "response": response}
 
         except Exception as e:

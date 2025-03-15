@@ -25,6 +25,7 @@ def calculate_expression(expression):
         expression = expression.replace('^', '**')
         expression = expression.replace(',', '.')
         return eval(expression, {"__builtins__": None}, {})
+
     except Exception as e:
         log_error(e)
         return f"Error: {e}"

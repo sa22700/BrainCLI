@@ -57,14 +57,12 @@ class SaveToFile:
         try:
             normalized_question = normalize_text(question)
             existing_data = self.load_pickle()
-
             if normalized_question in [normalize_text(q) for q in existing_data["questions"]]:
                 print(f"Question '{question}' is already saved.")
                 return
 
             existing_data["questions"].append(normalized_question)
             existing_data["answers"].append(answer)
-
             with open(self.pickle_file, "wb") as f:
                 pickle.dump(existing_data, f)
 

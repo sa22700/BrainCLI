@@ -14,16 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import unicodedata
 from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
 
 def normalize_text(text):
     try:
-        text = text.strip().lower()
-        normalized = ''.join(
-            c for c in unicodedata.normalize('NFD', text)
-            if unicodedata.category(c) != 'Mn')
-        return unicodedata.normalize('NFC', normalized)
+        return text.strip().lower()
 
     except Exception as e:
         print(f"Error normalizing text: {e}")

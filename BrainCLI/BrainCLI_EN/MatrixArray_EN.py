@@ -57,7 +57,6 @@ class BrainMatrix:
         if (not isinstance(other, BrainMatrix)
         or self.shape != other.shape):
             raise ValueError("Matrixes have to be the same size.")
-
         return BrainMatrix([[self.data[i][j] + other.data[i][j]
             for j in range(self.shape[1])]
             for i in range(self.shape[0])])
@@ -69,7 +68,6 @@ class BrainMatrix:
             else 0
             for val in row]
             for row in self.data])
-
         return BrainMatrix([[max(0, val)
             for val in row]
             for row in self.data])
@@ -78,7 +76,6 @@ class BrainMatrix:
         if (not isinstance(other, BrainMatrix)
         or self.shape != other.shape):
             raise ValueError("Matrixes have to be the same size.")
-
         return BrainMatrix([[self.data[i][j] - other.data[i][j]
             for j in range(self.shape[1])]
             for i in range(self.shape[0])])
@@ -100,7 +97,6 @@ class BrainMatrix:
     def elementwise_multiply(self, other):
         if self.shape != other.shape:
             raise ValueError("Matrixes have to be the same size.")
-
         return BrainMatrix([[self.data[i][j] * other.data[i][j]
             for j in range(self.shape[1])]
             for i in range(self.shape[0])])
@@ -119,10 +115,8 @@ class BrainLayer:
     def array_push(self, inputs):
         if isinstance(inputs, BrainMatrix):
             inputs = inputs.to_list()
-
         self.inputs = BrainMatrix([row[:]
             for row in inputs])
-
         self.outputs = self.inputs.array_dot(self.weights) \
             .array_add(self.biases) \
             .array_activation()
@@ -132,7 +126,6 @@ class BrainLayer:
         if (self.outputs is None
             or self.inputs is None):
             raise ValueError("Error: array_push() must be called before backpropagation!")
-
         d_activation = self.outputs.array_activation(deriv=True)
         delta = error.elementwise_multiply(d_activation)
         inputs_t = self.inputs.transpose()
@@ -151,10 +144,8 @@ class BrainNetwork:
     def array_predict(self, inputs):
         for layer in self.layers:
             inputs = layer.array_push(inputs)
-
         if isinstance(inputs, BrainMatrix):
             return inputs.to_list()
-
         else:
             return [[float(inputs)]] \
                 if not isinstance(inputs, list) \
@@ -162,10 +153,8 @@ class BrainNetwork:
 
     def train(self, inputs, expected_output, learning_rate=0.001):
         prediction = inputs
-
         for layer in self.layers:
             prediction = layer.array_push(prediction)
         error = BrainMatrix(expected_output).array_subtract(prediction)
-
         for layer in reversed(self.layers):
             error = layer.array_backpropagate(error, learning_rate)

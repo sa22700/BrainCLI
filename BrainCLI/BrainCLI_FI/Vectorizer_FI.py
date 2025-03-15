@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from BrainCLI.BrainCLI_FI.Degug_Log_FI import log_error
+from BrainCLI.BrainCLI_FI.Debug_Log_FI import log_error
 
 class BrainVectorizer:
     def __init__(self, vector_size=300):
@@ -36,11 +36,9 @@ class BrainVectorizer:
             words = text.lower().split()
             vectors = [self.word_vectors.setdefault(word, self._generate_vector(word))
             for word in words]
-
             if vectors:
                 avg_vector = [sum(vals) / len(vectors)
                 for vals in zip(*vectors)]
-
             else:
                 avg_vector = [0.0] * self.vector_size
             return avg_vector

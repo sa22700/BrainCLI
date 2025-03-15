@@ -36,11 +36,9 @@ class BrainVectorizer:
             words = text.lower().split()
             vectors = [self.word_vectors.setdefault(word, self._generate_vector(word))
             for word in words]
-
             if vectors:
                 avg_vector = [sum(vals) / len(vectors)
                 for vals in zip(*vectors)]
-
             else:
                 avg_vector = [0.0] * self.vector_size
             return avg_vector

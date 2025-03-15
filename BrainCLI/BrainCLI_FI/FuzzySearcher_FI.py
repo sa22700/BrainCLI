@@ -16,7 +16,7 @@ limitations under the License.
 
 import difflib
 from BrainCLI.BrainCLI_FI.Utils_FI import normalize_text
-from BrainCLI.BrainCLI_FI.Degug_Log_FI import log_error
+from BrainCLI.BrainCLI_FI.Debug_Log_FI import log_error
 
 class FuzzySearch:
     def __init__(self, ai_engine):
@@ -30,7 +30,6 @@ class FuzzySearch:
             query_norm = normalize_text(query)
             normalized_questions = [normalize_text(q) for q in questions if q]
             matches = difflib.get_close_matches(query_norm, normalized_questions, n=1, cutoff=0.8)
-
             if matches:
                 best_match_norm = matches[0]
                 index = normalized_questions.index(best_match_norm)
@@ -39,5 +38,5 @@ class FuzzySearch:
 
         except Exception as e:
             print(f"Virhe fuzzy-haussa: {e}")
-            log_error(e)
+            log_error(f"Virhe fuzzy-haussa: {e}")
             return None

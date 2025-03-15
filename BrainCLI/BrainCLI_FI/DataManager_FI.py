@@ -17,7 +17,7 @@ limitations under the License.
 import pickle
 import os
 from BrainCLI.BrainCLI_FI.Utils_FI import normalize_text
-from BrainCLI.BrainCLI_FI.Degug_Log_FI import log_error
+from BrainCLI.BrainCLI_FI.Debug_Log_FI import log_error
 
 class SaveToFile:
     def __init__(self, pickle_file=os.path.join(os.path.dirname(__file__), "braindata.fi.pkl")):
@@ -59,14 +59,12 @@ class SaveToFile:
         try:
             normalized_question = normalize_text(question)
             existing_data = self.load_pickle()
-
             if normalized_question in [normalize_text(q) for q in existing_data["questions"]]:
                 print(f"Kysymys '{question}' on jo tallennettu.")
                 return
 
             existing_data["questions"].append(normalized_question)
             existing_data["answers"].append(answer)
-
             with open(self.pickle_file, "wb") as f:
                 pickle.dump(existing_data, f)
 

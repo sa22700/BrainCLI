@@ -32,10 +32,8 @@ def load_facts(filename=os.path.join(os.path.dirname(__file__), "braindata.en.pk
 def get_random_fact(facts):
     if isinstance(facts, dict) and "answers" in facts:
         answers = facts["answers"]
-
         if isinstance(answers, list) and answers:
             return random.choice(answers)
-
     elif isinstance(facts, list) and facts:
         return random.choice(facts)
     return "Fact not found."

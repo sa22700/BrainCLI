@@ -17,19 +17,17 @@ limitations under the License.
 import os
 import sys
 import time
-from BrainCLI.BrainCLI_EN.AIEngine_EN import AIEngine
-from BrainCLI.BrainCLI_EN.DataManager_EN import SaveToFile
-from BrainCLI.BrainCLI_EN.MatrixArray_EN import BrainMatrix
 from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
 from BrainCLI.BrainCLI_EN.Calculate_EN import is_math_expression, command_calculate
 from BrainCLI.BrainCLI_EN.Randomizer_EN import command_random_fact
+from BrainCLI.BrainCLI_EN.AIEngine_EN import AIEngine
+
 
 class Program:
-    def __init__(self):
-        self.ai_engine = AIEngine()
-        self.saver = SaveToFile(os.path.join(os.path.dirname(__file__), "braindata.en.pkl"))
+    def __init__(self, data_file="braindata.en.pkl"):
+        data_path = os.path.join(os.path.dirname(__file__), data_file)
+        self.ai_engine = AIEngine(data_path)
         self.commands = {
-            "count": command_calculate,
             "calculate": command_calculate,
             "fact": command_random_fact,
             "trivia": command_random_fact,
@@ -43,28 +41,26 @@ class Program:
             time.sleep(delay)
         print()
 
-    async def run(self):
+    def run(self):
         try:
-            self.slow_type("Hi! I am BrainCLI.\nAsk me whatever you want!")
+            self.slow_type("Hi! I'm BrainCLI.\nAsk anything!")
             while True:
                 user_input = input("\n> ").strip().lower()
                 if not user_input:
-                    self.slow_type("You did not write anything. Try again.")
+                    self.slow_type("You didn't say anything. Try again.")
                     continue
-
                 if user_input in ["exit", "quit", "q"]:
-                    self.slow_type("The program is shutting down. Thanks for using!")
+                    self.slow_type("Program shutting down. Thank you for using it!")
                     break
-
                 else:
                     self.handle_question(user_input)
 
         except KeyboardInterrupt:
-            self.slow_type("\nThe program was interrupted. Thanks for using!")
+            self.slow_type("\nProgram interrupted. Thank you for using it!")
 
         except Exception as e:
-            log_error(e)
-            print(f"Error while running the program: {e}")
+            print(f"Error running program: {e}")
+            log_error(f"Error running program: {e}")
 
     def handle_question(self, question):
         try:
@@ -75,49 +71,46 @@ class Program:
                     self.slow_type(result)
                     return
 
-        except Exception as e:
-            print(f"Error while processing the question: {e}")
-            log_error(f"Error while processing the question: {e}")
-
-        try:
             if is_math_expression(question):
-                if is_math_expression(question):
-                    self.slow_type("It looks like you have a mathematical expression in your question."
-                        "\nDo you want me to calculate it for you? (y/n)")
-                    confirmation = input("> ").strip().lower()
-                    if confirmation.startswith("k"):
-                        result = command_calculate(question)
-                        self.slow_type(result)
-                        return
+                self.slow_type("It seems like you have a mathematical expression in your question."
+                    "\nDo you want me to calculate it for you? (y/n)")
+                confirmation = input("> ").strip().lower()
+                if confirmation.startswith("k"):
+                    result = command_calculate(question)
+                    self.slow_type(result)
+                    return
+
+            self.slow_type("Analyzing your question...")
+            response = self.ai_engine.get_response(question)
+            self.slow_type(response)
+            self.collect_feedback(question)
 
         except Exception as e:
-            print(f"Error while processing the question: {e}")
-            log_error(f"Error while processing the question: {e}")
+            print(f"Error handling question: {e}")
+            log_error(f"Error handling question: {e}")
 
-        self.slow_type("Analyzing your question...")
+    def collect_feedback(self, question):
+        satisfaction = input("How satisfied were you with my response? (y/n): ").strip().lower()
+        if satisfaction == "y":
+            self.slow_type("Thank you for your feedback!")
+        elif satisfaction == "n":
+            correct_answer = input("Please provide the correct answer: ").strip()
+            if correct_answer:
+                self.ai_engine.update_knowledge(question, correct_answer)
+                self.slow_type("Thank you! I have updated my knowledge.")
+            else:
+                self.slow_type("Answer not saved, as it was empty.")
+        else:
+            self.slow_type("Feedback not recorded, as it was not 'y' or 'n'.")
+
+    @staticmethod
+    def is_math_expression(expr):
         try:
-            ai_response = self.ai_engine.get_response(question)
+            eval(expr, {"__builtins__": None}, {})
+            return True
+        except:
+            return False
 
-            if isinstance(ai_response, BrainMatrix):
-                try:
-                    if (isinstance(ai_response.data, list)
-                            and len(ai_response.data) > 0
-                            and isinstance(ai_response.data[0], list)):
-                        ai_response = ai_response.data[0][0]
-
-                    else:
-                        ai_response = "I did not receive a prediction"
-
-                except Exception as e:
-                    ai_response = f"Error while processing BrainMatrix: {e}"
-            self.slow_type(str(ai_response))
-
-        except Exception as e:
-            print(f"Question processing failed: {e}")
-            log_error(e)
-
-async def main():
+if __name__ == "__main__":
     app = Program()
-    await app.run()
-
-
+    app.run()

@@ -17,18 +17,16 @@ limitations under the License.
 import os
 import sys
 import time
-from BrainCLI.BrainCLI_FI.AIEngine_FI import AIEngine
-from BrainCLI.BrainCLI_FI.DataManager_FI import SaveToFile
-from BrainCLI.BrainCLI_FI.MatrixArray_FI import BrainMatrix
-from BrainCLI.BrainCLI_FI.Degug_Log_FI import log_error
+from BrainCLI.BrainCLI_FI.Debug_Log_FI import log_error
 from BrainCLI.BrainCLI_FI.Calculate_FI import is_math_expression, command_calculate
 from BrainCLI.BrainCLI_FI.Randomizer_FI import command_random_fact
+from BrainCLI.BrainCLI_FI.AIEngine_FI import AIEngine
 
 
 class Program:
-    def __init__(self):
-        self.ai_engine = AIEngine()
-        self.saver = SaveToFile(os.path.join(os.path.dirname(__file__), "braindata.fi.pkl"))
+    def __init__(self, data_file="braindata.fi.pkl"):
+        data_path = os.path.join(os.path.dirname(__file__), data_file)
+        self.ai_engine = AIEngine(data_path)
         self.commands = {
             "laske": command_calculate,
             "fakta": command_random_fact,
@@ -43,7 +41,7 @@ class Program:
             time.sleep(delay)
         print()
 
-    async def run(self):
+    def run(self):
         try:
             self.slow_type("Hei! Minä olen BrainCLI.\nKysy mitä tahansa!")
             while True:
@@ -51,11 +49,9 @@ class Program:
                 if not user_input:
                     self.slow_type("Et syöttänyt mitään. Kokeile uudestaan.")
                     continue
-
                 if user_input in ["lopeta", "poistu", "q"]:
                     self.slow_type("Ohjelma suljetaan. Kiitos käytöstä!")
                     break
-
                 else:
                     self.handle_question(user_input)
 
@@ -75,49 +71,46 @@ class Program:
                     self.slow_type(result)
                     return
 
-        except Exception as e:
-            print(f"Virhe kysymyksen käsittelyssä: {e}")
-            log_error(f"Virhe kysymyksen käsittelyssä: {e}")
-        try:
             if is_math_expression(question):
-                if is_math_expression(question):
-                    self.slow_type("Näyttää siltä, että syötteessäsi on matemaattinen laskutoimitus."
-                        "\nHaluatko, että lasken sen puolestasi? (k/e)")
-                    confirmation = input("> ").strip().lower()
-                    if confirmation.startswith("k"):
-                        result = command_calculate(question)
-                        self.slow_type(result)
-                        return
+                self.slow_type("Näyttää siltä, että syötteessäsi on matemaattinen laskutoimitus."
+                    "\nHaluatko, että lasken sen puolestasi? (k/e)")
+                confirmation = input("> ").strip().lower()
+                if confirmation.startswith("k"):
+                    result = command_calculate(question)
+                    self.slow_type(result)
+                    return
+
+            self.slow_type("Analysoin kysymystäsi...")
+            response = self.ai_engine.get_response(question)
+            self.slow_type(response)
+            self.collect_feedback(question)
 
         except Exception as e:
             print(f"Virhe kysymyksen käsittelyssä: {e}")
             log_error(f"Virhe kysymyksen käsittelyssä: {e}")
 
-        self.slow_type("Analysoin kysymystäsi...")
+    def collect_feedback(self, question):
+        satisfaction = input("Oliko vastaus tyydyttävä? (k/e): ").strip().lower()
+        if satisfaction == "k":
+            self.slow_type("Kiitos palautteestasi!")
+        elif satisfaction == "e":
+            correct_answer = input("Anna oikea vastaus: ").strip()
+            if correct_answer:
+                self.ai_engine.update_knowledge(question, correct_answer)
+                self.slow_type("Kiitos! Tallensin uuden vastauksen.")
+            else:
+                self.slow_type("Ei tallennettu, koska vastaus jäi tyhjäksi.")
+        else:
+            self.slow_type("Palaute ei ollut kelvollinen, jatketaan normaalisti.")
+
+    @staticmethod
+    def is_math_expression(expr):
         try:
-            ai_response = self.ai_engine.get_response(question)
+            eval(expr, {"__builtins__": None}, {})
+            return True
+        except:
+            return False
 
-            if isinstance(ai_response, BrainMatrix):
-                try:
-                    if (isinstance(ai_response.data, list)
-                            and len(ai_response.data) > 0
-                            and isinstance(ai_response.data[0], list)):
-                        ai_response = ai_response.data[0][0]
-
-                    else:
-                        ai_response = "En saanut ennustetta"
-
-                except Exception as e:
-                    ai_response = f"Virhe BrainMatrixin käsittelyssä: {e}"
-                    log_error(f"Virhe BrainMatrixin käsittelyssä: {e}")
-            self.slow_type(str(ai_response))
-
-        except Exception as e:
-            print(f"Kysymyksen käsittely epäonnistui: {e}")
-            log_error(f"Kysymyksen käsittely epäonnistui: {e}")
-
-async def main():
+if __name__ == "__main__":
     app = Program()
-    await app.run()
-
-
+    app.run()
