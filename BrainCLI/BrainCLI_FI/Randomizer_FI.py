@@ -19,7 +19,7 @@ import random
 import pickle
 from BrainCLI.BrainCLI_FI.Debug_Log_FI import log_error
 
-def load_facts(filename=os.path.join(os.path.dirname(__file__), "braindata.fi.pkl")):
+def load_facts(filename=os.path.join(os.path.dirname(__file__), "../Models/braindata.fi.pkl")):
     try:
         with open(filename, "rb") as file:
             facts = pickle.load(file)

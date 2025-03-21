@@ -20,7 +20,7 @@ from BrainCLI.BrainCLI_FI.Utils_FI import normalize_text
 from BrainCLI.BrainCLI_FI.Debug_Log_FI import log_error
 
 class SaveToFile:
-    def __init__(self, pickle_file=os.path.join(os.path.dirname(__file__), "braindata.fi.pkl")):
+    def __init__(self, pickle_file=os.path.join(os.path.dirname(__file__), "../Models/braindata.fi.pkl")):
         try:
             self.pickle_file = pickle_file
             self.initialize_files()

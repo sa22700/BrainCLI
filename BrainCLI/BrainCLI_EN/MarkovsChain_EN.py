@@ -19,7 +19,7 @@ import os
 import random
 from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
 
-def load_brain_data(file_path = os.path.join(os.path.dirname(__file__), "braindata.en.pkl")):
+def load_brain_data(file_path = os.path.join(os.path.dirname(__file__), "../Models/braindata.en.pkl")):
     try:
         with open(file_path, "rb") as f:
             data = pickle.load(f)

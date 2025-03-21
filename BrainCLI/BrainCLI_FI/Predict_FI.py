@@ -31,7 +31,7 @@ class BrainPredictor:
     @staticmethod
     def load_data():
         try:
-            with open(os.path.join(os.path.dirname(__file__), "braindata.fi.pkl"), "rb") as f:
+            with open(os.path.join(os.path.dirname(__file__), "../Models/braindata.fi.pkl"), "rb") as f:
                 return pickle.load(f)
 
         except FileNotFoundError:

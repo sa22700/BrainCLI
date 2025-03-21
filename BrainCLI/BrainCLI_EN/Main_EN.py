@@ -24,7 +24,7 @@ from BrainCLI.BrainCLI_EN.AIEngine_EN import AIEngine
 
 
 class Program:
-    def __init__(self, data_file="braindata.en.pkl"):
+    def __init__(self, data_file="../Models/braindata.en.pkl"):
         data_path = os.path.join(os.path.dirname(__file__), data_file)
         self.ai_engine = AIEngine(data_path)
         self.commands = {

@@ -17,7 +17,7 @@ limitations under the License.
 import traceback
 import os
 
-LOG_FILE = os.path.join(os.path.dirname(__file__), "debug_FI.log")
+LOG_FILE = os.path.join(os.path.dirname(__file__), "../Errors_log/debug_FI.log")
 
 def log_error(error_message):
     with open(LOG_FILE, "a", encoding="utf-8") as log:
