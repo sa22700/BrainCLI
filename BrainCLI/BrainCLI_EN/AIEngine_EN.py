@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+# This project uses model weights licensed under CC BY 4.0 (see /Models/LICENSE)
 
 from BrainCLI.BrainCLI_EN.DataManager_EN import SaveToFile
 from BrainCLI.BrainCLI_EN.FuzzySearcher_EN import FuzzySearch

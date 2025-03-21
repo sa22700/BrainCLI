@@ -13,6 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+# This project uses model weights licensed under CC BY 4.0 (see /Models/LICENSE)
+
 
 import BrainCLI.BrainCLI_FI.AIEngine_FI
 import BrainCLI.BrainCLI_FI.MatrixArray_FI
