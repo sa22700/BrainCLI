@@ -20,7 +20,7 @@ from BrainCLI.BrainCLI_EN.FuzzySearcher_EN import FuzzySearch
 from BrainCLI.BrainCLI_EN.Vectorizer_EN import BrainVectorizer
 from BrainCLI.BrainCLI_EN.MatrixArray_EN import BrainNetwork, BrainLayer
 from BrainCLI.BrainCLI_EN.MarkovsChain_EN import build_markov_chain_from_data, generate_text
-from BrainCLI.BrainCLI_EN.Utils_EN import normalize_text
+from BrainCLI.BrainCLI_EN.Utils_EN import normalize_text, delete_stop_marks
 
 class AIEngine:
     def __init__(self, data_path):
@@ -45,12 +45,14 @@ class AIEngine:
             index = questions_norm.index(best_match)
             return self.data["answers"][index]
 
+        del_user_input = delete_stop_marks(user_input_norm)
+
         vector = self.vectorizer.vectorize_text(user_input_norm)
         prediction = self.nn.array_predict([vector])
         if prediction[0][0] > 0.5:
             return "I'm not sure, but my neural network thinks it's likely."
 
-        first_word = user_input.split()[0] if user_input.split()[0] in self.chain else next(iter(self.chain))
+        first_word = del_user_input.split()[0] if user_input.split()[0] in self.chain else next(iter(self.chain))
         return generate_text(self.chain, start_word=first_word, length=10)
 
     def update_knowledge(self, question, answer):

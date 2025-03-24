@@ -16,6 +16,7 @@ limitations under the License.
 # This project uses model weights licensed under CC BY 4.0 (see /Models/LICENSE)
 
 
+import re
 from BrainCLI.BrainCLI_FI.Debug_Log_FI import log_error
 
 def normalize_text(text):
@@ -26,3 +27,13 @@ def normalize_text(text):
         print(f"Virhe tekstin normalisoinnissa: {e}")
         log_error(e)
         return text
+
+def delete_stop_marks(text):
+    try:
+        return re.sub(r"[?!,.:;\"']", "", text).strip().lower()
+
+    except Exception as e:
+        print(f"Virhe stop markkien poistossa: {e}")
+        log_error(e)
+        return text
+

@@ -15,6 +15,7 @@ limitations under the License.
 '''
 # This project uses model weights licensed under CC BY 4.0 (see /Models/LICENSE)
 
+import re
 from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
 
 def normalize_text(text):
@@ -23,5 +24,14 @@ def normalize_text(text):
 
     except Exception as e:
         print(f"Error normalizing text: {e}")
+        log_error(e)
+        return text
+
+def delete_stop_marks(text):
+    try:
+        return re.sub(r"[?!,.:;\"]", "", text).strip().lower()
+
+    except Exception as e:
+        print(f"Error deleting stop marks: {e}")
         log_error(e)
         return text
