@@ -20,7 +20,6 @@ import os
 import sys
 import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import asyncio
 from BrainCLI.BrainCLI_EN.Main_EN import Program as Program_EN
 from BrainCLI.BrainCLI_FI.Main_FI import Program as Program_FI
 
@@ -41,10 +40,10 @@ class Main:
             choice = input("> ").strip().lower()
 
             if choice == "en":
-                asyncio.run(Program_EN().run())
+                Program_EN().run()
                 break
             elif choice == "fi":
-                asyncio.run(Program_FI().run())
+                Program_FI().run()
                 break
             else:
                 print("Invalid choice. Please try again.")
