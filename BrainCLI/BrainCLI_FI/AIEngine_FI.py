@@ -21,7 +21,7 @@ from BrainCLI.BrainCLI_FI.FuzzySearcher_FI import FuzzySearch
 from BrainCLI.BrainCLI_FI.Vectorizer_FI import BrainVectorizer
 from BrainCLI.BrainCLI_FI.MatrixArray_FI import BrainNetwork, BrainLayer
 from BrainCLI.BrainCLI_FI.MarkovsChain_FI import build_markov_chain_from_data, generate_text
-from BrainCLI.BrainCLI_FI.Utils_FI import normalize_text, delete_stop_marks
+from BrainCLI.BrainCLI_FI.Utils_FI import normalize_text, preprocess_text, select_start_word
 
 class AIEngine:
     def __init__(self, data_path):
@@ -35,9 +35,10 @@ class AIEngine:
         self.context = []
 
     def get_response(self, user_input):
+        cleaned_input = preprocess_text(user_input)
         user_input_norm = normalize_text(user_input)
         questions_norm = [normalize_text(q) for q in self.data["questions"]]
-        if user_input_norm in questions_norm:
+        if cleaned_input in questions_norm:
             index = questions_norm.index(user_input_norm)
             return self.data["answers"][index]
 
@@ -46,16 +47,15 @@ class AIEngine:
             index = questions_norm.index(best_match)
             return self.data["answers"][index]
 
-        del_user_input = delete_stop_marks(user_input_norm)
-
-        vector = self.vectorizer.vectorize_text(user_input_norm)
+        vector = self.vectorizer.vectorize_text(cleaned_input)
         prediction = self.nn.array_predict([vector])
 
         if prediction[0][0] > 0.5:
-            return "En osaa vastata varmasti, mutta neuroverkkoni arvioi asian olevan todennäköinen."
-
-        first_word = del_user_input.split()[0] if user_input.split()[0] in self.chain else next(iter(self.chain))
-        return generate_text(self.chain, start_word=first_word, length=10)
+            first_word = select_start_word(user_input_norm, self.chain)
+            return generate_text(self.chain, start_word=first_word, length=10)
+        else:
+            first_word = select_start_word(user_input_norm, self.chain)
+            return generate_text(self.chain, start_word=first_word, length=10)
 
     def update_knowledge(self, question, answer):
         self.data_manager.save_to_pickle(question, answer)
