@@ -55,6 +55,24 @@ Nyt PowerShell käyttää aina UTF-8-koodausta, ja ääkköset pitäisi toimia o
 
 ---
 
+Linux ympäristössä
+
+nano ~/.bashrc
+
+lisää nämä tiedoston loppuun:
+
+export LANG=fi_FI.UTF-8
+
+export LC_ALL=fi_FI.UTF-8
+
+ja aktivoi:
+
+source ~/.bashrc
+
+"Tämä toimii ainakin oletusterminaalissa, mutta jos ajat jollain IDE niin joudut vaihtamaan sen käyttämään myös samaa ympäristöä"
+
+---
+
 Joskus on niin ettei käyttäjältä löydy riittäviä oikeuksia lisätä skriptiä profiiliin niin oikeuksia pitää muuttaa.
 
 Mene järjestelmä oikeuksilla powershelliin ja kirjoita.
@@ -140,6 +158,24 @@ Save the file and close Notepad.
 Restart PowerShell.
 
 Now PowerShell always uses UTF-8 encoding, and special characters (such as ä and ö) should work correctly even with PyPy.
+
+---
+
+In a Linux enviroments
+
+nano ~/.bashrc
+
+Add the following lines at the end of the file:
+
+export LANG=fi_FI.UTF-8
+
+export LC_ALL=fi_FI.UTF-8
+
+Then activate the changes with:
+
+source ~/.bashrc
+
+"This works at least in the default terminal, but if you're using an IDE, you may need to configure it to use the same environment as well."
 
 ---
 
