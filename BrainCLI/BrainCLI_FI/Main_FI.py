@@ -23,12 +23,14 @@ from BrainCLI.BrainCLI_FI.Debug_Log_FI import log_error
 from BrainCLI.BrainCLI_FI.Calculate_FI import is_math_expression, command_calculate
 from BrainCLI.BrainCLI_FI.Randomizer_FI import command_random_fact
 from BrainCLI.BrainCLI_FI.AIEngine_FI import AIEngine
+from BrainCLI.BrainCLI_FI.ContextList_FI import ContextMemory
 
 
 class Program:
     def __init__(self, data_file="../Models/braindata.fi.pkl"):
         data_path = os.path.join(os.path.dirname(__file__), data_file)
         self.ai_engine = AIEngine(data_path)
+        self.context_memory = ContextMemory()
         self.commands = {
             "laske": command_calculate,
             "fakta": command_random_fact,
@@ -71,6 +73,7 @@ class Program:
                     args = question[len(command):].strip()
                     result = function(args) if args else function()
                     self.slow_type(result)
+                    self.context_memory.add_to_context(question, result)
                     return
 
             if is_math_expression(question):
@@ -80,11 +83,14 @@ class Program:
                 if confirmation.startswith("k"):
                     result = command_calculate(question)
                     self.slow_type(result)
+                    self.context_memory.add_to_context(question, result)
                     return
 
             self.slow_type("Analysoin kysymystäsi...")
-            response = self.ai_engine.get_response(question)
+            last_answer = self.context_memory.get_last_answer()
+            response = self.ai_engine.get_response(question, context=last_answer)
             self.slow_type(response)
+            self.context_memory.add_to_context(question, response)
             self.collect_feedback(question)
 
         except Exception as e:

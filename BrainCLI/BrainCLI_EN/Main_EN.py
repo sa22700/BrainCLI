@@ -22,12 +22,14 @@ from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
 from BrainCLI.BrainCLI_EN.Calculate_EN import is_math_expression, command_calculate
 from BrainCLI.BrainCLI_EN.Randomizer_EN import command_random_fact
 from BrainCLI.BrainCLI_EN.AIEngine_EN import AIEngine
+from BrainCLI.BrainCLI_EN.ContextList_EN import ContextMemory
 
 
 class Program:
     def __init__(self, data_file="../Models/braindata.en.pkl"):
         data_path = os.path.join(os.path.dirname(__file__), data_file)
         self.ai_engine = AIEngine(data_path)
+        self.context_memory = ContextMemory()
         self.commands = {
             "calculate": command_calculate,
             "fact": command_random_fact,
@@ -70,20 +72,24 @@ class Program:
                     args = question[len(command):].strip()
                     result = function(args) if args else function()
                     self.slow_type(result)
+                    self.context_memory.add_to_context(question, result)
                     return
 
             if is_math_expression(question):
                 self.slow_type("It seems like you have a mathematical expression in your question."
                     "\nDo you want me to calculate it for you? (y/n)")
                 confirmation = input("> ").strip().lower()
-                if confirmation.startswith("k"):
+                if confirmation.startswith("y"):
                     result = command_calculate(question)
                     self.slow_type(result)
+                    self.context_memory.add_to_context(question, result)
                     return
 
             self.slow_type("Analyzing your question...")
-            response = self.ai_engine.get_response(question)
+            last_answer = self.context_memory.get_last_answer()
+            response = self.ai_engine.get_response(question, context=last_answer)
             self.slow_type(response)
+            self.context_memory.add_to_context(question, response)
             self.collect_feedback(question)
 
         except Exception as e:

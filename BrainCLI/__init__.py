@@ -29,6 +29,7 @@ import BrainCLI.BrainCLI_FI.Debug_Log_FI
 import BrainCLI.BrainCLI_FI.Calculate_FI
 import BrainCLI.BrainCLI_FI.Randomizer_FI
 import BrainCLI.BrainCLI_FI.MarkovsChain_FI
+import BrainCLI.BrainCLI_FI.ContextList_FI
 
 import BrainCLI.BrainCLI_EN.AIEngine_EN
 import BrainCLI.BrainCLI_EN.MatrixArray_EN
@@ -43,5 +44,6 @@ import BrainCLI.BrainCLI_EN.Debug_Log_EN
 import BrainCLI.BrainCLI_EN.Calculate_EN
 import BrainCLI.BrainCLI_EN.Randomizer_EN
 import BrainCLI.BrainCLI_EN.MarkovsChain_EN
+import BrainCLI.BrainCLI_EN.ContextList_EN
 
 __all__ = ["BrainCLI_FI", "BrainCLI_EN"]

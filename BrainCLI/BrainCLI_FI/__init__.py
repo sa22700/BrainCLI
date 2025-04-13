@@ -29,6 +29,7 @@ import BrainCLI.BrainCLI_FI.Debug_Log_FI
 import BrainCLI.BrainCLI_FI.Calculate_FI
 import BrainCLI.BrainCLI_FI.Randomizer_FI
 import BrainCLI.BrainCLI_FI.MarkovsChain_FI
+import BrainCLI.BrainCLI_FI.ContextList_FI
 
 __all__ = ["AIEngine_FI", "MatrixArray_FI", "FuzzySearcher_FI", "DataManager_FI", "Utils_FI", "Main_FI", "Predict_FI", "Utils_FI", "Vectorizer_FI",
-           "Debug_Log_FI", "Calculate_FI", "Randomizer_FI", "MarkovsChain_FI"]
+           "Debug_Log_FI", "Calculate_FI", "Randomizer_FI", "MarkovsChain_FI", "ContextList_FI"]
