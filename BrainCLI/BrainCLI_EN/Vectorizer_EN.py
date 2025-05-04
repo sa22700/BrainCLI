@@ -15,34 +15,55 @@ limitations under the License.
 '''
 # This project uses model weights licensed under CC BY 4.0 (see /Models/LICENSE)
 
+from array import array
+from random import Random
 from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
 
 class BrainVectorizer:
-    def __init__(self, vector_size=300):
+    def __init__(self, vector_size: int = 300):
         self.vector_size = vector_size
-        self.word_vectors = {}
+        # Cache for deterministic word vectors
+        self.word_vectors: dict[str, array] = {}
 
-    @staticmethod
-    def _custom_random(seed, min_val=-1.0, max_val=1.0):
-        seed = (seed * 9301 + 49297) % 233280
-        return min_val + (seed / 233280.0) * (max_val - min_val)
+    def _generate_vector(self, word: str) -> array:
+        # Deterministic seed based on word characters
+        seed = sum(ord(c) for c in word)
+        rnd = Random(seed)
+        # Generate C-backed array of floats
+        return array('d', (rnd.uniform(-1.0, 1.0) for _ in range(self.vector_size)))
 
-    def _generate_vector(self, word):
-        seed = sum(ord(char) for char in word)
-        return [self._custom_random(seed + i)
-            for i in range(self.vector_size)]
-
-    def vectorize_text(self, text):
+    def vectorize_text(self, text: str) -> list[float]:
         try:
             words = text.lower().split()
-            vectors = [self.word_vectors.setdefault(word, self._generate_vector(word))
-            for word in words]
-            if vectors:
-                avg_vector = [sum(vals) / len(vectors)
-                for vals in zip(*vectors)]
-            else:
-                avg_vector = [0.0] * self.vector_size
-            return avg_vector
+            wv = self.word_vectors
+            vecs: list[array] = []
+
+            # Retrieve or generate each word vector
+            for w in words:
+                if w in wv:
+                    vecs.append(wv[w])
+                else:
+                    v = self._generate_vector(w)
+                    wv[w] = v
+                    vecs.append(v)
+
+            # If no words, return zero vector
+            if not vecs:
+                return [0.0] * self.vector_size
+
+            # Sum vectors manually (faster than zip/sum overhead)
+            size = self.vector_size
+            sum_vec = array('d', [0.0] * size)
+            for vec in vecs:
+                for i in range(size):
+                    sum_vec[i] += vec[i]
+
+            # Compute average
+            inv_n = 1.0 / len(vecs)
+            for i in range(size):
+                sum_vec[i] *= inv_n
+
+            return sum_vec.tolist()
 
         except Exception as e:
             print(f"Error vectorizing text: {e}")

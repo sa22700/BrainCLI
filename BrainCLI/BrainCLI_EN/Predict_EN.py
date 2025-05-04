@@ -17,6 +17,7 @@ limitations under the License.
 
 import pickle
 import os
+import difflib
 from BrainCLI.BrainCLI_EN.MatrixArray_EN import BrainNetwork, BrainLayer, BrainMatrix
 from BrainCLI.BrainCLI_EN.Vectorizer_EN import BrainVectorizer
 from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
@@ -25,58 +26,57 @@ class BrainPredictor:
     def __init__(self):
         self.vectorizer = BrainVectorizer()
         self.categories = ["Unknown"]
-        self.model = BrainNetwork([
-            BrainLayer(input_size=300, output_size=1)])
+        self.model = BrainNetwork([BrainLayer(input_size=300, output_size=1)])
         self.data = self.load_data()
+        # Cache questions and normalized forms
+        self.questions = list(self.data.keys())
+        self.norm_questions = [q.strip().lower() for q in self.questions]
 
     @staticmethod
     def load_data():
         try:
-            with open(os.path.join(os.path.dirname(__file__), "../Models/braindata.en.pkl"), "rb") as f:
+            path = os.path.join(os.path.dirname(__file__), "../Models/braindata.en.pkl")
+            with open(path, "rb") as f:
                 return pickle.load(f)
-
         except FileNotFoundError:
             log_error("Pickle file not found")
-            return []
-
+            return {}
         except Exception as e:
             print(f"Error loading data: {e}")
             log_error(e)
-            return []
+            return {}
 
-    def fuzzy_match(self, user_input):
-        user_input_norm = user_input.strip().lower()
-        min_distance = float("inf")
-        best_match = None
-        for question in self.data:
-            question_norm = question.strip().lower()
-            distance = abs(len(user_input_norm) - len(question_norm)) + sum(a != b
-                for a, b in zip(user_input_norm, question_norm))
-            if distance < min_distance:
-                min_distance = distance
-                best_match = question
-        return best_match
+    def fuzzy_match(self, user_input: str) -> str | None:
+        query = user_input.strip().lower()
+        if not self.questions:
+            return None
+        match = difflib.get_close_matches(query, self.norm_questions, n=1, cutoff=0.0)
+        if not match:
+            return None
+        idx = self.norm_questions.index(match[0])
+        return self.questions[idx]
 
-    def predict(self, question):
+    def predict(self, question: str) -> dict:
         try:
             vector = self.vectorizer.vectorize_text(question)
             prediction = self.model.array_predict([vector])
+            # Normalize prediction into list-of-lists of floats
             if isinstance(prediction, BrainMatrix):
                 prediction = prediction.to_list()
             elif isinstance(prediction, (int, float)):
                 prediction = [[float(prediction)]]
-            elif (isinstance(prediction, list)
-                  and len(prediction) == 1
-                  and isinstance(prediction[0], (int, float))):
+            elif isinstance(prediction, list) and all(isinstance(x, (int, float)) for x in prediction):
                 prediction = [[float(x)] for x in prediction]
             elif not isinstance(prediction, list):
-                raise TypeError(f"Error array_predict: Expected list but got {type(prediction)}: {prediction}")
-            best_match = self.fuzzy_match(question)
-            if best_match:
-                response = self.data.get(best_match, "Could not find a response.")
+                raise TypeError(f"Error in array_predict: expected list but got {type(prediction)}: {prediction}")
+
+            best = self.fuzzy_match(question)
+            if best:
+                response = self.data.get(best, "Could not find a response.")
             else:
                 response = "I don't know."
-            return {"prediction": prediction, "match": best_match, "response": response}
+
+            return {"prediction": prediction, "match": best, "response": response}
 
         except Exception as e:
             log_error(e)
