@@ -17,6 +17,27 @@ limitations under the License.
 
 from array import array
 from operator import mul
+import ctypes
+
+lib = ctypes.cdll.LoadLibrary('./libmatrixops.so')
+
+def flatten(matrix):
+    return [item for row in matrix for item in row]
+
+def gpu_dot(a, b, n, m, k):
+    a_flat = array('f', flatten([list(row) for row in a]))
+    b_flat = array('f', flatten([list(row) for row in b]))
+    c_flat = array('f', [0.0] * (n * k))
+    ptr_f = ctypes.POINTER(ctypes.c_float)
+    lib.matmul.argtypes = [ptr_f, ptr_f, ptr_f, ctypes.c_int, ctypes.c_int, ctypes.c_int]
+    lib.matmul.restype = None
+    lib.matmul(
+        ctypes.cast(a_flat.buffer_info()[0], ptr_f),
+        ctypes.cast(b_flat.buffer_info()[0], ptr_f),
+        ctypes.cast(c_flat.buffer_info()[0], ptr_f),
+        n, m, k
+    )
+    return [[float(c_flat[i * k + j]) for j in range(k)] for i in range(n)]
 
 class BrainRandom:
     def __init__(self, seed=12345):
@@ -40,11 +61,12 @@ class BrainRandom:
 brain_random = BrainRandom()
 
 class BrainMatrix:
-    def __init__(self, data):
+    def __init__(self, data, use_gpu=False):
         # data: list of lists of floats
         self._rows = [array('d', row) for row in data]
         self.shape = (len(self._rows), len(self._rows[0]) if self._rows else 0)
         self._cols = None
+        self.use_gpu = use_gpu
 
     def __repr__(self):
         return f"BrainMatrix(shape={self.shape})"
@@ -62,10 +84,16 @@ class BrainMatrix:
     def array_dot(self, other: 'BrainMatrix') -> 'BrainMatrix':
         if self.shape[1] != other.shape[0]:
             raise ValueError("Matriisit eivät-sopivia.")
-        rows = self._rows
-        cols = other.cols
-        result = [[sum(map(mul, r, c)) for c in cols] for r in rows]
-        return BrainMatrix(result)
+        if self.use_gpu or getattr(other, "use_gpu", False):  # Käytä GPU:ta jos kumpikaan haluaa
+            n, m = self.shape
+            _, k = other.shape
+            result = gpu_dot(self._rows, other._rows, n, m, k)
+            return BrainMatrix(result, use_gpu=True)
+        else:
+            rows = self._rows
+            cols = other.cols
+            result = [[sum(map(mul, r, c)) for c in cols] for r in rows]
+            return BrainMatrix(result)
 
     def array_add(self, other: 'BrainMatrix') -> 'BrainMatrix':
         if self.shape != other.shape:

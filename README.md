@@ -97,6 +97,8 @@ pypy Main.py
 
 Jos käytät PyPy:tä, varmista että olet asettanut PowerShellin UTF-8-koodauksen kuten yllä.
 
+Muista myös ajaa komentorivillä: nvcc --compiler-options '-fPIC' -shared -o libmatrixops.so Matrix_Dot.cu jotta saat cudan käyttöön.
+
 ---
 
 ** Tämä projekti on lisensoitu Apache License 2.0 -ehdoilla.
@@ -200,6 +202,8 @@ Now PowerShell will always use UTF-8, and special characters should work correct
 python Main.py
 
 pypy Main.py
+
+Remember to also run the following command in the terminal to enable CUDA support: nvcc --compiler-options '-fPIC' -shared -o libmatrixops.so Matrix_Dot.cu
 
 ---
 

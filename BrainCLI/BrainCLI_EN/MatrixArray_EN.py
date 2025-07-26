@@ -68,14 +68,14 @@ class BrainMatrix:
 
     def array_add(self, other: 'BrainMatrix') -> 'BrainMatrix':
         if self.shape != other.shape:
-            raise ValueError("Matrices must have same dimensions for addition.")
+            raise ValueError("Matrices must have the same dimensions for addition.")
         result = [[r[i] + o[i] for i in range(self.shape[1])]
                   for r, o in zip(self._rows, other._rows)]
         return BrainMatrix(result)
 
     def array_subtract(self, other: 'BrainMatrix') -> 'BrainMatrix':
         if self.shape != other.shape:
-            raise ValueError("Matrices must have same dimensions for subtraction.")
+            raise ValueError("Matrices must have the same dimensions for subtraction.")
         result = [[r[i] - o[i] for i in range(self.shape[1])]
                   for r, o in zip(self._rows, other._rows)]
         return BrainMatrix(result)
@@ -87,7 +87,7 @@ class BrainMatrix:
 
     def elementwise_multiply(self, other: 'BrainMatrix') -> 'BrainMatrix':
         if self.shape != other.shape:
-            raise ValueError("Matrices must have same dimensions for elementwise multiplication.")
+            raise ValueError("Matrices must have the same dimensions for elementwise multiplication.")
         result = [[r[i] * o[i] for i in range(self.shape[1])]
                   for r, o in zip(self._rows, other._rows)]
         return BrainMatrix(result)
