@@ -17,6 +17,33 @@ limitations under the License.
 
 from array import array
 from operator import mul
+import ctypes
+
+try:
+    lib = ctypes.cdll.LoadLibrary('./libmatrixops.so')
+    cuda_available = True
+
+except OSError:
+    lib = None
+    cuda_available = False
+
+def flatten(matrix):
+    return [item for row in matrix for item in row]
+
+def gpu_dot(a, b, n, m, k):
+    a_flat = array('f', flatten([list(row) for row in a]))
+    b_flat = array('f', flatten([list(row) for row in b]))
+    c_flat = array('f', [0.0] * (n * k))
+    ptr_f = ctypes.POINTER(ctypes.c_float)
+    lib.matmul.argtypes = [ptr_f, ptr_f, ptr_f, ctypes.c_int, ctypes.c_int, ctypes.c_int]
+    lib.matmul.restype = None
+    lib.matmul(
+        ctypes.cast(a_flat.buffer_info()[0], ptr_f),
+        ctypes.cast(b_flat.buffer_info()[0], ptr_f),
+        ctypes.cast(c_flat.buffer_info()[0], ptr_f),
+        n, m, k
+    )
+    return [[float(c_flat[i * k + j]) for j in range(k)] for i in range(n)]
 
 class BrainRandom:
     def __init__(self, seed=12345):
@@ -33,17 +60,19 @@ class BrainRandom:
         return min_val + (max_val - min_val) * self.rand()
 
     def random_matrix(self, shape, min_val=-1, max_val=1):
-        return [[self.uniform(min_val, max_val) for _ in range(shape[1])]
+        return [[self.uniform(min_val, max_val)
+                 for _ in range(shape[1])]
                 for _ in range(shape[0])]
 
 brain_random = BrainRandom()
 
 class BrainMatrix:
-    def __init__(self, data):
+    def __init__(self, data, use_gpu=False):
         # data: list of lists of floats
         self._rows = [array('d', row) for row in data]
         self.shape = (len(self._rows), len(self._rows[0]) if self._rows else 0)
         self._cols = None
+        self.use_gpu = use_gpu and cuda_available
 
     def __repr__(self):
         return f"BrainMatrix(shape={self.shape})"
@@ -61,6 +90,14 @@ class BrainMatrix:
     def array_dot(self, other: 'BrainMatrix') -> 'BrainMatrix':
         if self.shape[1] != other.shape[0]:
             raise ValueError("Matrices are not aligned for multiplication.")
+        if self.use_gpu or getattr(other, "use_gpu", False):
+            if lib is not None:
+                n, m = self.shape
+                _, k = other.shape
+                result = gpu_dot(self._rows, other._rows, n, m, k)
+                return BrainMatrix(result, use_gpu=True)
+
+        # CPU fallback
         rows = self._rows
         cols = other.cols
         result = [[sum(map(mul, r, c)) for c in cols] for r in rows]
@@ -68,15 +105,17 @@ class BrainMatrix:
 
     def array_add(self, other: 'BrainMatrix') -> 'BrainMatrix':
         if self.shape != other.shape:
-            raise ValueError("Matrices must have the same dimensions for addition.")
-        result = [[r[i] + o[i] for i in range(self.shape[1])]
+            raise ValueError("Matrixs are not aligned for addition.")
+        result = [[r[i] + o[i]
+                   for i in range(self.shape[1])]
                   for r, o in zip(self._rows, other._rows)]
         return BrainMatrix(result)
 
     def array_subtract(self, other: 'BrainMatrix') -> 'BrainMatrix':
         if self.shape != other.shape:
-            raise ValueError("Matrices must have the same dimensions for subtraction.")
-        result = [[r[i] - o[i] for i in range(self.shape[1])]
+            raise ValueError("Matrixs are not aligned for subtraction.")
+        result = [[r[i] - o[i]
+                   for i in range(self.shape[1])]
                   for r, o in zip(self._rows, other._rows)]
         return BrainMatrix(result)
 
@@ -87,8 +126,9 @@ class BrainMatrix:
 
     def elementwise_multiply(self, other: 'BrainMatrix') -> 'BrainMatrix':
         if self.shape != other.shape:
-            raise ValueError("Matrices must have the same dimensions for elementwise multiplication.")
-        result = [[r[i] * o[i] for i in range(self.shape[1])]
+            raise ValueError("Elementwise-multiplication requires same shapes.")
+        result = [[r[i] * o[i]
+                   for i in range(self.shape[1])]
                   for r, o in zip(self._rows, other._rows)]
         return BrainMatrix(result)
 
@@ -101,10 +141,13 @@ class BrainMatrix:
 
     def array_activation(self, deriv: bool = False) -> 'BrainMatrix':
         if deriv:
-            result = [[1 if val > 0 else 0 for val in row] for row in self._rows]
+            result = [[1 if val > 0 else 0 for val in row]
+                      for row in self._rows]
         else:
-            result = [[val if val > 0 else 0 for val in row] for row in self._rows]
+            result = [[val if val > 0 else 0 for val in row]
+                      for row in self._rows]
         return BrainMatrix(result)
+
 
 class BrainLayer:
     def __init__(self, input_size: int, output_size: int):
@@ -116,12 +159,12 @@ class BrainLayer:
     def array_push(self, inputs):
         mat = inputs if isinstance(inputs, BrainMatrix) else BrainMatrix(inputs)
         self.inputs = BrainMatrix(mat.to_list())
-        self.outputs = self.inputs.array_dot(self.weights) \
-                            .array_add(self.biases) \
+        self.outputs = self.inputs.array_dot(self.weights)\
+                            .array_add(self.biases)\
                             .array_activation()
         return self.outputs
 
-    def array_backpropagate(self, error: 'BrainMatrix', learning_rate: float = 0.001) -> 'BrainMatrix':
+    def array_backpropagate(self, error: BrainMatrix, learning_rate: float = 0.001) -> BrainMatrix:
         if self.outputs is None or self.inputs is None:
             raise ValueError("Call array_push before backpropagation.")
         d_act = self.outputs.array_activation(deriv=True)
@@ -131,6 +174,7 @@ class BrainLayer:
         bias_grad = delta.array_scale(learning_rate)
         self.biases = self.biases.array_subtract(bias_grad)
         return delta.array_dot(self.weights.transpose())
+
 
 class BrainNetwork:
     def __init__(self, layers: list[BrainLayer]):
@@ -144,9 +188,11 @@ class BrainNetwork:
         return output.to_list()
 
     def train(self, inputs, expected_output, learning_rate: float = 0.001):
+        # forward pass
         prediction = inputs
         for layer in self.layers:
             prediction = layer.array_push(prediction)
+        # backward pass
         error = BrainMatrix(expected_output).array_subtract(prediction)
         for layer in reversed(self.layers):
             error = layer.array_backpropagate(error, learning_rate)

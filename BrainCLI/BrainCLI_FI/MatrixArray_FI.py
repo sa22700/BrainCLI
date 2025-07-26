@@ -19,7 +19,13 @@ from array import array
 from operator import mul
 import ctypes
 
-lib = ctypes.cdll.LoadLibrary('./libmatrixops.so')
+try:
+    lib = ctypes.cdll.LoadLibrary('./libmatrixops.so')
+    cuda_available = True
+
+except OSError:
+    lib = None
+    cuda_available = False
 
 def flatten(matrix):
     return [item for row in matrix for item in row]
@@ -66,7 +72,7 @@ class BrainMatrix:
         self._rows = [array('d', row) for row in data]
         self.shape = (len(self._rows), len(self._rows[0]) if self._rows else 0)
         self._cols = None
-        self.use_gpu = use_gpu
+        self.use_gpu = use_gpu and cuda_available
 
     def __repr__(self):
         return f"BrainMatrix(shape={self.shape})"
@@ -83,17 +89,19 @@ class BrainMatrix:
 
     def array_dot(self, other: 'BrainMatrix') -> 'BrainMatrix':
         if self.shape[1] != other.shape[0]:
-            raise ValueError("Matriisit eivät-sopivia.")
-        if self.use_gpu or getattr(other, "use_gpu", False):  # Käytä GPU:ta jos kumpikaan haluaa
-            n, m = self.shape
-            _, k = other.shape
-            result = gpu_dot(self._rows, other._rows, n, m, k)
-            return BrainMatrix(result, use_gpu=True)
-        else:
-            rows = self._rows
-            cols = other.cols
-            result = [[sum(map(mul, r, c)) for c in cols] for r in rows]
-            return BrainMatrix(result)
+            raise ValueError("Matriisien koot eivät ole sama.")
+        if self.use_gpu or getattr(other, "use_gpu", False):
+            if lib is not None:
+                n, m = self.shape
+                _, k = other.shape
+                result = gpu_dot(self._rows, other._rows, n, m, k)
+                return BrainMatrix(result, use_gpu=True)
+
+        # CPU fallback
+        rows = self._rows
+        cols = other.cols
+        result = [[sum(map(mul, r, c)) for c in cols] for r in rows]
+        return BrainMatrix(result)
 
     def array_add(self, other: 'BrainMatrix') -> 'BrainMatrix':
         if self.shape != other.shape:
@@ -118,7 +126,7 @@ class BrainMatrix:
 
     def elementwise_multiply(self, other: 'BrainMatrix') -> 'BrainMatrix':
         if self.shape != other.shape:
-            raise ValueError("Elementwise-multiplication requires same shapes.")
+            raise ValueError("Matriisien koot eivät ole sama.")
         result = [[r[i] * o[i]
                    for i in range(self.shape[1])]
                   for r, o in zip(self._rows, other._rows)]
@@ -158,7 +166,7 @@ class BrainLayer:
 
     def array_backpropagate(self, error: BrainMatrix, learning_rate: float = 0.001) -> BrainMatrix:
         if self.outputs is None or self.inputs is None:
-            raise ValueError("Call array_push before backpropagation.")
+            raise ValueError("Kutsu array_push ennen palautusta.")
         d_act = self.outputs.array_activation(deriv=True)
         delta = error.elementwise_multiply(d_act)
         weight_grad = self.inputs.transpose().array_dot(delta).array_scale(learning_rate)
