@@ -62,7 +62,6 @@ class BrainPredictor:
         try:
             vector = self.vectorizer.vectorize_text(question)
             prediction = self.model.array_predict([vector])
-            # Ensure list-of-lists of floats
             if isinstance(prediction, BrainMatrix):
                 prediction = prediction.to_list()
             elif isinstance(prediction, (int, float)):

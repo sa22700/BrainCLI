@@ -188,11 +188,9 @@ class BrainNetwork:
         return output.to_list()
 
     def train(self, inputs, expected_output, learning_rate: float = 0.001):
-        # forward pass
         prediction = inputs
         for layer in self.layers:
             prediction = layer.array_push(prediction)
-        # backward pass
         error = BrainMatrix(expected_output).array_subtract(prediction)
         for layer in reversed(self.layers):
             error = layer.array_backpropagate(error, learning_rate)

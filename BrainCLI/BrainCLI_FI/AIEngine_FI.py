@@ -67,8 +67,27 @@ class AIEngine:
             index = questions_norm.index(best_match)
             return self.data["answers"][index]
 
-        # vector = self.vectorizer.vectorize_text(cleaned_input)
-        # prediction = self.nn.array_predict([vector])
+        vector = self.vectorizer.vectorize_text(cleaned_input)
+        _ = self.nn.array_predict([vector])
+
+        vector = self.vectorizer.vectorize_text(cleaned_input)
+        prediction = self.nn.array_predict([vector])
+
+        outputs = [self.nn.array_predict([self.vectorizer.vectorize_text(q)]) for q in self.data["questions"]]
+
+        def output_similarity(a, b):
+            from math import sqrt
+            a = a[0] if isinstance(a[0], list) else a
+            b = b[0] if isinstance(b[0], list) else b
+            dot = sum(i * j for i, j in zip(a, b))
+            norm_a = sqrt(sum(i ** 2 for i in a))
+            norm_b = sqrt(sum(i ** 2 for i in b))
+            return dot / (norm_a * norm_b) if norm_a > 0 and norm_b > 0 else 0
+
+        similarities = [output_similarity(prediction, out) for out in outputs]
+        if similarities:
+            best_idx = similarities.index(max(similarities))
+            return self.data["answers"][best_idx]
 
         first_word = select_start_word(user_input_norm, self.chain)
         return generate_text(self.chain, start_word=first_word, length=10)
