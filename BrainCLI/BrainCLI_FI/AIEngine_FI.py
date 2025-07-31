@@ -68,9 +68,6 @@ class AIEngine:
             return self.data["answers"][index]
 
         vector = self.vectorizer.vectorize_text(cleaned_input)
-        _ = self.nn.array_predict([vector])
-
-        vector = self.vectorizer.vectorize_text(cleaned_input)
         prediction = self.nn.array_predict([vector])
 
         outputs = [self.nn.array_predict([self.vectorizer.vectorize_text(q)]) for q in self.data["questions"]]
