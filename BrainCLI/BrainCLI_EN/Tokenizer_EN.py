@@ -15,23 +15,16 @@ limitations under the License.
 '''
 # This project uses model weights licensed under CC BY 4.0 (see /Models/LICENSE)
 
-def tokens():
-    return [
-        "<PAD>", "<START>", "<END>", "<UNK>", "<SEP>", "<CLS>",
+from collections import Counter
+import pickle
 
-        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+def tokens(data):
+    all_text = " ".join(data).lower()
+    words = all_text.split()
+    most_common = [w for w, _ in Counter(words).most_common(1000)]
+    special_tokens = ["<PAD>", "<START>", "<END>", "<UNK>", "<SEP>", "<CLS>"]
+    return special_tokens + most_common
 
-        "i", "you", "he", "she", "we", "they",
-        "am", "are", "is", "was", "were", "be", "been", "being", "have", "has", "had",
-        "do", "does", "did", "not", "and", "but", "or", "if", "when", "then", "so", "also",
-        "the", "a", "an", "this", "that", "these", "those", "what", "why", "where", "because", "how",
-        "yes", "no", "know", "can", "want", "part", "say", "make", "go", "went", "come", "came",
-        "do", "does", "doing", "make", "made", "making", "get", "good", "bad", "big", "small", "old", "young",
-        "man", "woman", "child", "cat", "dog", "car", "house", "school", "book", "work", "friend", "family",
-        "day", "week", "year", "month", "time", "hour", "minute", "second", "now", "then", "always", "sometimes",
-        "before", "after", "here", "there", "home", "city", "country", "finland", "english", "speak", "write",
-        "read", "listen", "watch", "know", "understand", "remember", "forget", "ask", "answer",
-
-        ".", ",", "!", "?", ":", ";", "'", '"', "-", "_", "(", ")", "[", "]", "{", "}", "/", "\\", "@", "#", "$", "%",
-        "&", "*", "+", "=", "<", ">", "|", "^", "~", "`", " ", "\n", "\t"
-    ]
+data = pickle.load(open('braindata.en.pkl', 'rb'))
+all_data = data["questions"] + data["answers"]
+tokens = tokens(all_data)

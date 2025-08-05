@@ -15,29 +15,18 @@ limitations under the License.
 '''
 # This project uses model weights licensed under CC BY 4.0 (see /Models/LICENSE)
 
-def tokens():
-    # 1. Sanasto (täydennä tarpeesi mukaan)
-    return [
-        # Erikoistokenit
-        "<PAD>", "<START>", "<END>", "<UNK>", "<SEP>", "<CLS>",
+from collections import Counter
+import pickle
 
-        # Numerot
-        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+def tokens(data):
+    all_text = " ".join(data).lower()
+    words = all_text.split()
+    most_common = [w for w, _ in Counter(words).most_common(1000)]
+    special_tokens = ["<PAD>", "<START>", "<END>", "<UNK>", "<SEP>", "<CLS>"]
+    return special_tokens + most_common
 
-        # Suomi: yleisimmät sanat (100 kpl)
-        "minä", "sinä", "hän", "me", "te", "he",
-        "on", "ei", "ja", "mutta", "tai", "jos", "kun", "että", "niin", "myös", "kuten",
-        "se", "ne", "tämä", "tuo", "nämä", "nuo", "mikä", "miksi", "missä", "koska", "kuinka",
-        "kyllä", "en", "tiedä", "olen", "oot", "voin", "haluan", "osa", "sanoa", "tehdä",
-        "voit", "tulee", "mennä", "mennyt", "tule", "tulen", "tekee", "tehdään", "saada",
-        "hyvä", "huono", "suuri", "pieni", "vanha", "nuori", "mies", "nainen", "lapsi",
-        "kissa", "koira", "auto", "talo", "koulu", "kirja", "työ", "ystävä", "perhe", "päivä",
-        "viikko", "vuosi", "kuukausi", "aika", "tunti", "hetki", "minuutti", "sekunti",
-        "nyt", "sitten", "aina", "joskus", "ennen", "jälkeen", "täällä", "tuolla", "kotona",
-        "kaupungissa", "maalla", "suomi", "englanti", "puhua", "kirjoittaa", "lukea", "kuunnella",
-        "katsoa", "tietää", "ymmärtää", "muistaa", "unohtaa", "kysyä", "vastata",
 
-        # Perusmerkit ja välimerkit
-        ".", ",", "!", "?", ":", ";", "'", '"', "-", "_", "(", ")", "[", "]", "{", "}", "/", "\\", "@", "#", "$", "%",
-        "&", "*", "+", "=", "<", ">", "|", "^", "~", "`", " ", "\n", "\t"
-    ]
+
+data = pickle.load(open('braindata.fi.pkl', 'rb'))
+all_data = data["questions"] + data["answers"]
+tokens = tokens(all_data)
