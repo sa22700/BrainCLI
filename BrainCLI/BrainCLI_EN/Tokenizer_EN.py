@@ -17,6 +17,7 @@ limitations under the License.
 
 from collections import Counter
 import pickle
+import os
 
 def tokens(data):
     all_text = " ".join(data).lower()
@@ -25,6 +26,6 @@ def tokens(data):
     special_tokens = ["<PAD>", "<START>", "<END>", "<UNK>", "<SEP>", "<CLS>"]
     return special_tokens + most_common
 
-data = pickle.load(open('braindata.en.pkl', 'rb'))
+data = pickle.load(open(os.path.join(os.path.dirname(__file__),'../Models/braindata.en.pkl', 'rb')))
 all_data = data["questions"] + data["answers"]
 tokens = tokens(all_data)

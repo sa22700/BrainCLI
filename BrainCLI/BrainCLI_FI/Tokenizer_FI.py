@@ -17,6 +17,7 @@ limitations under the License.
 
 from collections import Counter
 import pickle
+import os
 
 def tokens(data):
     all_text = " ".join(data).lower()
@@ -27,6 +28,6 @@ def tokens(data):
 
 
 
-data = pickle.load(open('braindata.fi.pkl', 'rb'))
+data = pickle.load(open(os.path.join(os.path.dirname(__file__),'../Models/braindata.fi.pkl', 'rb')))
 all_data = data["questions"] + data["answers"]
 tokens = tokens(all_data)
