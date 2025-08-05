@@ -19,9 +19,9 @@ import math
 import random
 from BrainCLI.BrainCLI_FI.Tokenizer_FI import tokens
 
-token2id = {tok: i for i, tok in enumerate(tokens())}
+token2id = {tok: i for i, tok in enumerate(tokens)}
 id2token = {i: tok for tok, i in token2id.items()}
-vocab_size = len(tokens())
+vocab_size = len(tokens)
 hidden_size = 32
 
 def rand_mat(rows, cols, scale=0.1):

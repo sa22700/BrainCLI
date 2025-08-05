@@ -19,13 +19,13 @@ from collections import Counter
 import pickle
 import os
 
-def tokens(data):
+def gen_tokens(data):
     all_text = " ".join(data).lower()
     words = all_text.split()
     most_common = [w for w, _ in Counter(words).most_common(1000)]
     special_tokens = ["<PAD>", "<START>", "<END>", "<UNK>", "<SEP>", "<CLS>"]
     return special_tokens + most_common
 
-data = pickle.load(open(os.path.join(os.path.dirname(__file__),'../Models/braindata.en.pkl', 'rb')))
+data = pickle.load(open(os.path.join(os.path.dirname(__file__), '../Models/braindata.en.pkl'), 'rb'))
 all_data = data["questions"] + data["answers"]
-tokens = tokens(all_data)
+tokens = gen_tokens(all_data)
