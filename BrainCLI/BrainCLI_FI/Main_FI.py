@@ -29,6 +29,7 @@ from BrainCLI.BrainCLI_FI.ContextList_FI import ContextMemory
 class Program:
     def __init__(self, data_file="../Models/braindata.fi.pkl"):
         data_path = os.path.join(os.path.dirname(__file__), data_file)
+        weights_path = os.path.join(os.path.dirname(data_path), "../Models/weights.fi.pkl")
         self.ai_engine = AIEngine(data_path)
         self.context_memory = ContextMemory()
         self.commands = {
@@ -36,6 +37,24 @@ class Program:
             "fakta": command_random_fact,
             "trivia": command_random_fact,
         }
+        if os.path.exists(weights_path):
+            try:
+                print("Ladataan neuroverkon painot tiedostosta...")
+                self.ai_engine.data_manager.load_weights(self.ai_engine.nn, weights_path)
+                print("Painot ladattu.")
+            except Exception as e:
+                print("Painotiedoston lataus epäonnistui (syy: {}) – koulutetaan neuroverkko...".format(e))
+                os.remove(weights_path)
+                self.ai_engine.train_network(epochs=3, learning_rate=0.0005)
+                print("Tallennetaan painot tiedostoon...")
+                self.ai_engine.data_manager.save_weights(self.ai_engine.nn, weights_path)
+                print("Painot tallennettu.")
+        else:
+            print("Koulutetaan neuroverkko...")
+            self.ai_engine.train_network(epochs=3, learning_rate=0.0005)
+            print("Tallennetaan painot tiedostoon...")
+            self.ai_engine.data_manager.save_weights(self.ai_engine.nn, weights_path)
+            print("Painot tallennettu.")
 
     @staticmethod
     def slow_type(text, delay=0.05):
@@ -87,8 +106,7 @@ class Program:
                     return
 
             self.slow_type("Analysoin kysymystäsi...")
-            last_answer = self.context_memory.get_last_answer()
-            response = self.ai_engine.get_response(question, context=last_answer)
+            response = self.ai_engine.get_response(question)
             self.slow_type(response)
             self.context_memory.add_to_context(question, response)
             self.collect_feedback(question)

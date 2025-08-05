@@ -15,14 +15,14 @@ limitations under the License.
 '''
 # This project uses model weights licensed under CC BY 4.0 (see /Models/LICENSE)
 
-
+import difflib
+import time
+from BrainCLI.BrainCLI_FI.Utils_FI import normalize_text
 from BrainCLI.BrainCLI_FI.DataManager_FI import SaveToFile
-from BrainCLI.BrainCLI_FI.FuzzySearcher_FI import FuzzySearch
 from BrainCLI.BrainCLI_FI.Vectorizer_FI import BrainVectorizer
 from BrainCLI.BrainCLI_FI.MatrixArray_FI import BrainNetwork, BrainLayer
-from BrainCLI.BrainCLI_FI.MarkovsChain_FI import build_markov_chain_from_data, generate_text
-from BrainCLI.BrainCLI_FI.Utils_FI import normalize_text, preprocess_text, select_start_word
-
+from BrainCLI.BrainCLI_FI.Decoder_FI import decode
+from BrainCLI.BrainCLI_FI.FuzzySearcher_FI import FuzzySearch
 
 def cosine_similarity(v1, v2):
     dot = sum(a * b for a, b in zip(v1, v2))
@@ -32,48 +32,89 @@ def cosine_similarity(v1, v2):
         return 0
     return dot / (mag1 * mag2)
 
+def find_close_match(input_norm, questions_norm, cutoff=0.8):
+    matches = difflib.get_close_matches(input_norm, questions_norm, n=1, cutoff=cutoff)
+    if matches:
+        return matches[0]
+    return None
 
 class AIEngine:
     def __init__(self, data_path):
         self.data_manager = SaveToFile(data_path)
         self.data = self.data_manager.load_pickle()
         self.vectorizer = BrainVectorizer()
+        self.nn = BrainNetwork([BrainLayer(300, 128), BrainLayer(128, 300)])
         self.fuzzy_search = FuzzySearch(self)
-        self.chain = build_markov_chain_from_data(data_path)
-        self.nn = BrainNetwork([BrainLayer(300, 5), BrainLayer(5, 1)])
         self.vocabulary = None
         self.context = []
 
-    def is_contextual(self, question, context):
-        v1 = self.vectorizer.vectorize_text(question)
-        v2 = self.vectorizer.vectorize_text(context)
-        return cosine_similarity(v1, v2) > 0.85
-
-    def get_response(self, user_input, context=None):
-        cleaned_input = preprocess_text(user_input)
+    def get_response(self, user_input, threshold=0.95):
         user_input_norm = normalize_text(user_input)
         questions_norm = [normalize_text(q) for q in self.data["questions"]]
 
-        if context and self.is_contextual(user_input, context):
-            cleaned_input = f"{context} {cleaned_input}"
-            user_input_norm = normalize_text(cleaned_input)
+        # 1. Suora osuma
+        if user_input_norm in questions_norm:
+            idx = questions_norm.index(user_input_norm)
+            return self.data["answers"][idx]
 
-        if cleaned_input in questions_norm:
-            index = questions_norm.index(user_input_norm)
-            return self.data["answers"][index]
-
-        best_match = self.fuzzy_search.performfuzzysearch(user_input_norm, questions_norm)
+        # 2. Fuzzy-haku
+        best_match = self.fuzzy_search.performfuzzysearch(user_input_norm, self.data["questions"])
         if best_match:
-            index = questions_norm.index(best_match)
-            return self.data["answers"][index]
+            idx = self.data["questions"].index(best_match)
+            return self.data["answers"][idx]
 
-        # vector = self.vectorizer.vectorize_text(cleaned_input)
-        # prediction = self.nn.array_predict([vector])
+        # 3. Syväoppiva vastaus (neuroverkko + cosine similarity)
+        input_vec = self.vectorizer.vectorize_text(user_input)
+        output_vec = self.nn.array_predict([input_vec])[0]
 
-        first_word = select_start_word(user_input_norm, self.chain)
-        return generate_text(self.chain, start_word=first_word, length=10)
+        best_idx, best_score = None, -1
+        for idx, answer in enumerate(self.data["answers"]):
+            a_vec = self.vectorizer.vectorize_text(answer)
+            score = cosine_similarity(output_vec, a_vec)
+            if score > best_score:
+                best_idx, best_score = idx, score
+
+        if best_score > threshold:
+            return self.data["answers"][best_idx]
+        else:
+            return f"{decode(output_vec)}"
+
+    def train_network(self, epochs=3, learning_rate=0.0005):
+        questions = self.data["questions"]
+        answers = self.data["answers"]
+        if not questions or not answers:
+            print("Ei koulutettavaa dataa!")
+            return
+
+        for epoch in range(epochs):
+            total_loss = 0
+            N = len(questions)
+            start_time = time.time()
+            for i, (q, a) in enumerate(zip(questions, answers)):
+                q_vec = self.vectorizer.vectorize_text(q)
+                a_vec = self.vectorizer.vectorize_text(a)
+                input_matrix = [q_vec]
+                target_matrix = [a_vec]
+
+                self.nn.train(input_matrix, target_matrix, learning_rate=learning_rate)
+                prediction = self.nn.array_predict(input_matrix)
+                pred_vec = prediction[0] if isinstance(prediction[0], list) else prediction
+                loss = sum((pi - ai) ** 2 for pi, ai in zip(pred_vec, a_vec)) / len(a_vec)
+                total_loss += loss
+
+                if (i % (N // 100 + 1) == 0) or (i == N - 1):
+                    percent = int(100 * (i + 1) / N)
+                    elapsed = time.time() - start_time
+                    if i > 0:
+                        eta = (elapsed / (i + 1)) * (N - i - 1)
+                        mins, secs = divmod(int(eta), 60)
+                        eta_str = f"{mins:02d}:{secs:02d}"
+                    else:
+                        eta_str = "--:--"
+                    print(f"\rEpoch {epoch + 1}/{epochs}: {percent} % (ETA: {eta_str})", end="")
+            print()
+            print(f"Epoch {epoch + 1}/{epochs}, loss: {total_loss / N}")
 
     def update_knowledge(self, question, answer):
         self.data_manager.save_to_pickle(question, answer)
         self.data = self.data_manager.load_pickle()
-        self.chain = build_markov_chain_from_data(self.data_manager.pickle_file)

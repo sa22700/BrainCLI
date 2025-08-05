@@ -73,3 +73,11 @@ class SaveToFile:
         except Exception as e:
             print(f"Virhe tallennettaessa Pickle-tiedostoon: {e}")
             log_error(e)
+
+    def save_weights(self, brainnetwork, path):
+        with open(path, "wb") as f:
+            pickle.dump(brainnetwork.get_weights(), f)
+
+    def load_weights(self, brainnetwork, path):
+        with open(path, "rb") as f:
+            brainnetwork.set_weights(pickle.load(f))
