@@ -15,6 +15,7 @@ limitations under the License.
 '''
 # This project uses model weights licensed under CC BY 4.0 (see /Models/LICENSE)
 
+import math
 from array import array
 from random import Random
 from BrainCLI.BrainCLI_FI.Debug_Log_FI import log_error
@@ -33,7 +34,7 @@ class BrainVectorizer:
         try:
             words = text.lower().split()
             wv = self.word_vectors
-            vecs = []
+            vecs: list[array] = []
             for w in words:
                 if w in wv:
                     vecs.append(wv[w])
@@ -41,10 +42,8 @@ class BrainVectorizer:
                     v = self._generate_vector(w)
                     wv[w] = v
                     vecs.append(v)
-
             if not vecs:
                 return [0.0] * self.vector_size
-
             size = self.vector_size
             sum_vec = array('d', [0.0] * size)
             for vec in vecs:
@@ -53,6 +52,9 @@ class BrainVectorizer:
             inv_n = 1.0 / len(vecs)
             for i in range(size):
                 sum_vec[i] *= inv_n
+            norm = math.sqrt(sum(x * x for x in sum_vec))
+            if norm > 0:
+                sum_vec = array('d', [x / norm for x in sum_vec])
             return sum_vec.tolist()
 
         except Exception as e:

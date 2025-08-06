@@ -30,7 +30,6 @@ def rand_mat(rows, cols, scale=0.1):
 def rand_vec(size, scale=0.1):
     return [random.uniform(-scale, scale) for _ in range(size)]
 
-# Painot (pysyvät session ajan; generatiivinen demo)
 W_embed = rand_mat(vocab_size, hidden_size)
 W_hh = rand_mat(hidden_size, hidden_size)
 W_in = rand_mat(hidden_size, hidden_size)

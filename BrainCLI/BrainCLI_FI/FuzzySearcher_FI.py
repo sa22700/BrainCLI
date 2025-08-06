@@ -28,7 +28,6 @@ class FuzzySearch:
         try:
             if not questions:
                 return None
-
             query_norm = normalize_text(query)
             normalized_questions = [normalize_text(q) for q in questions if q]
             matches = difflib.get_close_matches(query_norm, normalized_questions, n=1, cutoff=0.8)

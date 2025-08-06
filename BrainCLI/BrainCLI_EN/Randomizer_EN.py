@@ -25,6 +25,7 @@ def load_facts(filename=os.path.join(os.path.dirname(__file__), "../Models/brain
         with open(filename, "rb") as file:
             facts = pickle.load(file)
         return facts
+
     except Exception as e:
         print(f"Error loading facts: {e}")
         log_error(e)

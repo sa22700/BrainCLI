@@ -40,16 +40,17 @@ class Program:
                 print("Loading neural network weights from file...")
                 self.ai_engine.data_manager.load_weights(self.ai_engine.nn, weights_path)
                 print("Weights loaded.")
+
             except Exception as e:
                 print(f"Loading weights file failed (reason: {e}) – training the neural network...")
                 os.remove(weights_path)
-                self.ai_engine.train_network(epochs=3, learning_rate=0.0001)
+                self.ai_engine.train_network(epochs=3, learning_rate=0.000001)
                 print("Saving weights to file...")
                 self.ai_engine.data_manager.save_weights(self.ai_engine.nn, weights_path)
                 print("Weights saved.")
         else:
             print("Training the neural network...")
-            self.ai_engine.train_network(epochs=3, learning_rate=0.0001)
+            self.ai_engine.train_network(epochs=3, learning_rate=0.000001)
             print("Saving weights to file...")
             self.ai_engine.data_manager.save_weights(self.ai_engine.nn, weights_path)
             print("Weights saved.")
@@ -92,7 +93,6 @@ class Program:
                     self.slow_type(result)
                     self.context_memory.add_to_context(question, result)
                     return
-
             if is_math_expression(question):
                 self.slow_type("It looks like your input is a mathematical expression.\nWould you like me to calculate it for you? (y/n)")
                 confirmation = input("> ").strip().lower()
@@ -101,7 +101,6 @@ class Program:
                     self.slow_type(result)
                     self.context_memory.add_to_context(question, result)
                     return
-
             self.slow_type("Analyzing your question...")
             response = self.ai_engine.get_response(question)
             self.slow_type(response)
@@ -131,6 +130,7 @@ class Program:
         try:
             eval(expr, {"__builtins__": None}, {})
             return True
+
         except:
             return False
 

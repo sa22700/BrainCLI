@@ -56,11 +56,11 @@ def delete_stop_words(text):
         'my', 'your', 'his', 'its', 'our', 'their',
         'what', 'which', 'who', 'whom'
     ]
-
     try:
         words = text.strip().lower().split()
         filtered = [w for w in words if w not in stop_words]
         return " ".join(filtered)
+
     except Exception as e:
         print(f"Error removing stop words: {e}")
         log_error(e)
@@ -73,21 +73,24 @@ def preprocess_text(text, remove_stop_marks=True, remove_stop_words=True):
         if remove_stop_words:
             text = delete_stop_words(text)
         return normalize_text(text)
+
     except Exception as e:
         print(f"Error during preprocessing: {e}")
         log_error(e)
         return text
 
-def select_start_word(user_input, markov_chain):
+def select_start_word(user_input):
     try:
         cleaned_text = delete_stop_words(user_input)
         if not cleaned_text:
             cleaned_text = user_input
         words = cleaned_text.split()
         for word in words:
-            if word in markov_chain:
+            if word:
                 return word
+
     except Exception as e:
         print(f"Error selecting start word: {e}")
         log_error(e)
-    return next(iter(markov_chain))
+
+    return None

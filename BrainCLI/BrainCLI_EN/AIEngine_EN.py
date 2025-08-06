@@ -51,41 +51,32 @@ class AIEngine:
     def get_response(self, user_input, threshold=0.95):
         user_input_norm = normalize_text(user_input)
         questions_norm = [normalize_text(q) for q in self.data["questions"]]
-
-        # 1. Suora osuma
         if user_input_norm in questions_norm:
             idx = questions_norm.index(user_input_norm)
             return self.data["answers"][idx]
-
-        # 2. Fuzzy-haku
         best_match = self.fuzzy_search.performfuzzysearch(user_input_norm, self.data["questions"])
         if best_match:
             idx = self.data["questions"].index(best_match)
             return self.data["answers"][idx]
-
-        # 3. Syväoppiva vastaus (neuroverkko + cosine similarity)
         input_vec = self.vectorizer.vectorize_text(user_input)
         output_vec = self.nn.array_predict([input_vec])[0]
-
         best_idx, best_score = None, -1
         for idx, answer in enumerate(self.data["answers"]):
             a_vec = self.vectorizer.vectorize_text(answer)
             score = cosine_similarity(output_vec, a_vec)
             if score > best_score:
                 best_idx, best_score = idx, score
-
         if best_score > threshold:
             return self.data["answers"][best_idx]
         else:
             return f"{decode(output_vec)}"
 
-    def train_network(self, epochs=3, learning_rate=0.0001):
+    def train_network(self, epochs=3, learning_rate=0.000001):
         questions = self.data["questions"]
         answers = self.data["answers"]
         if not questions or not answers:
             print("No training data available!")
             return
-
         for epoch in range(epochs):
             total_loss = 0
             N = len(questions)
@@ -95,13 +86,11 @@ class AIEngine:
                 a_vec = self.vectorizer.vectorize_text(a)
                 input_matrix = [q_vec]
                 target_matrix = [a_vec]
-
                 self.nn.train(input_matrix, target_matrix, learning_rate=learning_rate)
                 prediction = self.nn.array_predict(input_matrix)
                 pred_vec = prediction[0] if isinstance(prediction[0], list) else prediction
                 loss = sum((pi - ai) ** 2 for pi, ai in zip(pred_vec, a_vec)) / len(a_vec)
                 total_loss += loss
-
                 if (i % (N // 100 + 1) == 0) or (i == N - 1):
                     percent = int(100 * (i + 1) / N)
                     elapsed = time.time() - start_time

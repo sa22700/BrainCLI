@@ -15,6 +15,7 @@ limitations under the License.
 '''
 # This project uses model weights licensed under CC BY 4.0 (see /Models/LICENSE)
 
+import math
 from array import array
 from random import Random
 from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
@@ -22,14 +23,11 @@ from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
 class BrainVectorizer:
     def __init__(self, vector_size: int = 300):
         self.vector_size = vector_size
-        # Cache for deterministic word vectors
         self.word_vectors: dict[str, array] = {}
 
     def _generate_vector(self, word: str) -> array:
-        # Deterministic seed based on word characters
         seed = sum(ord(c) for c in word)
         rnd = Random(seed)
-        # Generate C-backed array of floats
         return array('d', (rnd.uniform(-1.0, 1.0) for _ in range(self.vector_size)))
 
     def vectorize_text(self, text: str) -> list[float]:
@@ -37,8 +35,6 @@ class BrainVectorizer:
             words = text.lower().split()
             wv = self.word_vectors
             vecs: list[array] = []
-
-            # Retrieve or generate each word vector
             for w in words:
                 if w in wv:
                     vecs.append(wv[w])
@@ -46,23 +42,19 @@ class BrainVectorizer:
                     v = self._generate_vector(w)
                     wv[w] = v
                     vecs.append(v)
-
-            # If no words, return zero vector
             if not vecs:
                 return [0.0] * self.vector_size
-
-            # Sum vectors manually (faster than zip/sum overhead)
             size = self.vector_size
             sum_vec = array('d', [0.0] * size)
             for vec in vecs:
                 for i in range(size):
                     sum_vec[i] += vec[i]
-
-            # Compute average
             inv_n = 1.0 / len(vecs)
             for i in range(size):
                 sum_vec[i] *= inv_n
-
+            norm = math.sqrt(sum(x * x for x in sum_vec))
+            if norm > 0:
+                sum_vec = array('d', [x / norm for x in sum_vec])
             return sum_vec.tolist()
 
         except Exception as e:

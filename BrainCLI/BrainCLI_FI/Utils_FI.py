@@ -71,18 +71,18 @@ def preprocess_text(text, remove_stop_marks=True, remove_stop_words=True):
         log_error(e)
         return text
 
-def select_start_word(user_input, markov_chain):
+def select_start_word(user_input):
     try:
         cleaned_text = delete_stop_words(user_input)
         if not cleaned_text:
             cleaned_text = user_input
         words = cleaned_text.split()
         for word in words:
-            if word in markov_chain:
+            if word:
                 return word
 
     except Exception as e:
         print(f"Virhe tekstin käsittelyssä: {e}")
         log_error(e)
 
-    return next(iter(markov_chain))
+    return None

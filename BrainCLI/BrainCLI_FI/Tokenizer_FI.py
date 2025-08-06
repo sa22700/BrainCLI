@@ -26,8 +26,6 @@ def gen_tokens(data):
     special_tokens = ["<PAD>", "<START>", "<END>", "<UNK>", "<SEP>", "<CLS>"]
     return special_tokens + most_common
 
-
-
 data = pickle.load(open(os.path.join(os.path.dirname(__file__), '../Models/braindata.fi.pkl'), 'rb'))
 all_data = data["questions"] + data["answers"]
 tokens = gen_tokens(all_data)

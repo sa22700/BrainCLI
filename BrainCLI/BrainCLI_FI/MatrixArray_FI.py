@@ -57,7 +57,6 @@ def gpu_add(a, b, n, m):
         ctypes.cast(a_flat, ptr_f),
         ctypes.cast(b_flat, ptr_f),
         ctypes.cast(c_flat, ptr_f),
-
         n, m
     )
     return [[float(c_flat[i * m + j]) for j in range(m)] for i in range(n)]
@@ -77,7 +76,13 @@ def gpu_subtract(a, b, n, m):
     )
     return [[float(c_flat[i * m + j]) for j in range(m)] for i in range(n)]
 
-
+def clip_matrix(mat, min_val, max_val):
+    for row in mat.rows:
+        for i in range(len(row)):
+            if row[i] > max_val:
+                row[i] = max_val
+            elif row[i] < min_val:
+                row[i] = min_val
 
 class BrainRandom:
     def __init__(self, seed=12345):
@@ -93,7 +98,7 @@ class BrainRandom:
     def uniform(self, min_val, max_val):
         return min_val + (max_val - min_val) * self.rand()
 
-    def random_matrix(self, shape, min_val=-1, max_val=0.05):
+    def random_matrix(self, shape, min_val=-0.01, max_val=0.01):
         return [[self.uniform(min_val, max_val)
                  for _ in range(shape[1])]
                 for _ in range(shape[0])]
@@ -103,6 +108,7 @@ brain_random = BrainRandom()
 class BrainMatrix:
     def __init__(self, data, use_gpu=False):
         # data: list of lists of floats
+        self.rows = None
         self._rows = [array('d', row) for row in data]
         self.shape = (len(self._rows), len(self._rows[0]) if self._rows else 0)
         self._cols = None
@@ -130,8 +136,6 @@ class BrainMatrix:
                 _, k = other.shape
                 result = gpu_dot(self._rows, other._rows, n, m, k)
                 return BrainMatrix(result, use_gpu=True)
-
-        # CPU fallback
         rows = self._rows
         cols = other.cols
         result = [[sum(map(mul, r, c)) for c in cols] for r in rows]
@@ -140,12 +144,10 @@ class BrainMatrix:
     def array_add(self, other: 'BrainMatrix') -> 'BrainMatrix':
         if self.shape != other.shape:
             raise ValueError("Matriisien koot eivät täsmää yhteenlaskuun.")
-        # GPU-haara
         if (self.use_gpu or getattr(other, "use_gpu", False)) and lib is not None:
             n, m = self.shape
             result = gpu_add(self._rows, other._rows, n, m)
             return BrainMatrix(result, use_gpu=True)
-        # CPU fallback
         result = [[r[i] + o[i]
                    for i in range(self.shape[1])]
                   for r, o in zip(self._rows, other._rows)]
@@ -185,18 +187,16 @@ class BrainMatrix:
 
     def array_activation(self, deriv: bool = False) -> 'BrainMatrix':
         if deriv:
-            result = [[1 if val > 0 else 0 for val in row]
-                      for row in self._rows]
+            result = [[1 if val > 0 else 0 for val in row] for row in self._rows]
         else:
-            result = [[val if val > 0 else 0 for val in row]
-                      for row in self._rows]
+            result = [[val if val > 0 else 0 for val in row] for row in self._rows]
         return BrainMatrix(result)
 
 
 class BrainLayer:
     def __init__(self, input_size: int, output_size: int):
-        self.weights = BrainMatrix.array_random((input_size, output_size), min_val=-0.05, max_val=0.05)
-        self.biases = BrainMatrix.array_random((1, output_size), min_val=-0.05, max_val=0.05)
+        self.weights = BrainMatrix.array_random((input_size, output_size), min_val=-0.0001, max_val=0.0001)
+        self.biases = BrainMatrix.array_random((1, output_size), min_val=-0.0001, max_val=0.0001)
         self.inputs = None
         self.outputs = None
 
@@ -210,23 +210,23 @@ class BrainLayer:
 
     def array_backpropagate(self, error: BrainMatrix, learning_rate: float = 0.0005) -> BrainMatrix:
         if self.outputs is None or self.inputs is None:
-            raise ValueError("Kutsu array_push ennen palautusta.")
+            raise ValueError("Call array_push first.")
         d_act = self.outputs.array_activation(deriv=True)
         delta = error.elementwise_multiply(d_act)
         weight_grad = self.inputs.transpose().array_dot(delta).array_scale(learning_rate)
         self.weights = self.weights.array_subtract(weight_grad)
         bias_grad = delta.array_scale(learning_rate)
         self.biases = self.biases.array_subtract(bias_grad)
+        clip_matrix(self.weights, -1.0, 1.0)
+        clip_matrix(self.biases, -1.0, 1.0)
         return delta.array_dot(self.weights.transpose())
 
     def get_params(self):
-        # Palauta kaikki mitä pitää tallentaa/palauttaa (yleensä painot ja bias)
         return {"weights": self.weights, "biases": self.biases}
 
     def set_params(self, params):
         self.weights = params["weights"]
         self.biases = params["biases"]
-
 
 class BrainNetwork:
     def __init__(self, layers: list[BrainLayer]):
@@ -248,11 +248,8 @@ class BrainNetwork:
             error = layer.array_backpropagate(error, learning_rate)
 
     def get_weights(self):
-        # Palauta kaikki painot (ja mahdollisesti biasit) kerroksittain
-        # Oletetaan että verkolla on lista self.layers, ja jokaisella layerilla on 'weights' ja mahdollisesti 'bias'
         return [layer.get_params() for layer in self.layers]
 
     def set_weights(self, weights_list):
-        # Oletetaan että weights_list on lista, jonka jokainen alkio menee yhdelle kerrokselle
         for layer, params in zip(self.layers, weights_list):
             layer.set_params(params)
