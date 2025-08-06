@@ -134,9 +134,8 @@ class BrainMatrix:
                 _, k = other.shape
                 result = gpu_dot(self._rows, other._rows, n, m, k)
                 return BrainMatrix(result, use_gpu=True)
-        rows = self._rows
         cols = other.cols
-        result = [[sum(map(mul, r, c)) for c in cols] for r in rows]
+        result = [[sum(map(mul, r, c)) for c in cols] for r in self._rows]
         return BrainMatrix(result)
 
     def array_add(self, other: 'BrainMatrix') -> 'BrainMatrix':
