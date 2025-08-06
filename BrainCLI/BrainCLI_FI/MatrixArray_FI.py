@@ -107,8 +107,6 @@ brain_random = BrainRandom()
 
 class BrainMatrix:
     def __init__(self, data, use_gpu=False):
-        # data: list of lists of floats
-        self.rows = None
         self._rows = [array('d', row) for row in data]
         self.shape = (len(self._rows), len(self._rows[0]) if self._rows else 0)
         self._cols = None

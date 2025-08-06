@@ -195,7 +195,6 @@ class BrainMatrix:
 
 class BrainLayer:
     def __init__(self, input_size: int, output_size: int):
-        self._rows = None
         self.weights = BrainMatrix.array_random((input_size, output_size), min_val=-0.0001, max_val=0.0001)
         self.biases = BrainMatrix.array_random((1, output_size), min_val=-0.0001, max_val=0.0001)
         self.inputs = None
