@@ -189,6 +189,9 @@ class BrainMatrix:
             result = [[val if val > 0 else 0 for val in row] for row in self._rows]
         return BrainMatrix(result)
 
+    @property
+    def rows(self):
+        return self._rows
 
 class BrainLayer:
     def __init__(self, input_size: int, output_size: int):
