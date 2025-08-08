@@ -15,6 +15,7 @@ limitations under the License.
 '''
 # This project uses model weights licensed under CC BY 4.0 (see /Models/LICENSE)
 
+
 import difflib
 import time
 from BrainCLI.BrainCLI_EN.DataManager_EN import SaveToFile
@@ -23,6 +24,7 @@ from BrainCLI.BrainCLI_EN.Vectorizer_EN import BrainVectorizer
 from BrainCLI.BrainCLI_EN.MatrixArray_EN import BrainNetwork, BrainLayer
 from BrainCLI.BrainCLI_EN.Utils_EN import normalize_text
 from BrainCLI.BrainCLI_EN.Decoder_EN import decode
+from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
 
 def cosine_similarity(v1, v2):
     dot = sum(a * b for a, b in zip(v1, v2))
@@ -49,29 +51,35 @@ class AIEngine:
         self.context = []
 
     def get_response(self, user_input, threshold=0.95):
-        user_input_norm = normalize_text(user_input)
-        questions_norm = [normalize_text(q) for q in self.data["questions"]]
-        if user_input_norm in questions_norm:
-            idx = questions_norm.index(user_input_norm)
-            return self.data["answers"][idx]
-        best_match = self.fuzzy_search.performfuzzysearch(user_input_norm, self.data["questions"])
-        if best_match:
-            idx = self.data["questions"].index(best_match)
-            return self.data["answers"][idx]
-        input_vec = self.vectorizer.vectorize_text(user_input)
-        output_vec = self.nn.array_predict([input_vec])[0]
-        best_idx, best_score = None, -1
-        for idx, answer in enumerate(self.data["answers"]):
-            a_vec = self.vectorizer.vectorize_text(answer)
-            score = cosine_similarity(output_vec, a_vec)
-            if score > best_score:
-                best_idx, best_score = idx, score
-        if best_score > threshold:
-            return self.data["answers"][best_idx]
-        else:
-            return f"{decode(output_vec)}"
+        try:
+            user_input_norm = normalize_text(user_input)
+            questions_norm = [normalize_text(q) for q in self.data["questions"]]
+            if user_input_norm in questions_norm:
+                idx = questions_norm.index(user_input_norm)
+                return self.data["answers"][idx]
+            best_match = self.fuzzy_search.performfuzzysearch(user_input_norm, self.data["questions"])
+            if best_match:
+                idx = self.data["questions"].index(best_match)
+                return self.data["answers"][idx]
+            input_vec = self.vectorizer.vectorize_text(user_input)
+            output_vec = self.nn.array_predict([input_vec])[0]
+            best_idx, best_score = None, -1
+            for idx, answer in enumerate(self.data["answers"]):
+                a_vec = self.vectorizer.vectorize_text(answer)
+                score = cosine_similarity(output_vec, a_vec)
+                if score > best_score:
+                    best_idx, best_score = idx, score
+            if best_score > threshold:
+                return self.data["answers"][best_idx]
+            else:
+                return f"{decode(output_vec)}"
 
-    def train_network(self, epochs=3, learning_rate=0.000001):
+        except Exception as e:
+            print(f"Error: {e}")
+            log_error(f"Error: {e}")
+            return "Error occurred while processing your request. Please try again later."
+
+    def train_network(self, epochs=1, learning_rate=0.000001):
         questions = self.data["questions"]
         answers = self.data["answers"]
         if not questions or not answers:
@@ -82,15 +90,22 @@ class AIEngine:
             N = len(questions)
             start_time = time.time()
             for i, (q, a) in enumerate(zip(questions, answers)):
-                q_vec = self.vectorizer.vectorize_text(q)
-                a_vec = self.vectorizer.vectorize_text(a)
-                input_matrix = [q_vec]
-                target_matrix = [a_vec]
-                self.nn.train(input_matrix, target_matrix, learning_rate=learning_rate)
-                prediction = self.nn.array_predict(input_matrix)
-                pred_vec = prediction[0] if isinstance(prediction[0], list) else prediction
-                loss = sum((pi - ai) ** 2 for pi, ai in zip(pred_vec, a_vec)) / len(a_vec)
-                total_loss += loss
+                try:
+                    q_vec = self.vectorizer.vectorize_text(q)
+                    a_vec = self.vectorizer.vectorize_text(a)
+                    input_matrix = [q_vec]
+                    target_matrix = [a_vec]
+                    self.nn.train(input_matrix, target_matrix, learning_rate=learning_rate)
+                    prediction = self.nn.array_predict(input_matrix)
+                    pred_vec = prediction[0] if isinstance(prediction[0], list) else prediction
+                    loss = sum((pi - ai) ** 2 for pi, ai in zip(pred_vec, a_vec)) / len(a_vec)
+                    total_loss += loss
+
+                except Exception as e:
+                    print(f"Error: {e}")
+                    log_error(f"Error: {e}")
+                    continue
+
                 if (i % (N // 100 + 1) == 0) or (i == N - 1):
                     percent = int(100 * (i + 1) / N)
                     elapsed = time.time() - start_time
@@ -101,9 +116,13 @@ class AIEngine:
                     else:
                         eta_str = "--:--"
                     print(f"\rEpoch {epoch + 1}/{epochs}: {percent} % (ETA: {eta_str})", end="")
-            print()
-            print(f"Epoch {epoch + 1}/{epochs}, loss: {total_loss / N}")
+            print(f"\nEpoch {epoch + 1}/{epochs}, loss: {total_loss / N}")
 
     def update_knowledge(self, question, answer):
-        self.data_manager.save_to_pickle(question, answer)
-        self.data = self.data_manager.load_pickle()
+        try:
+            self.data_manager.save_to_pickle(question, answer)
+            self.data = self.data_manager.load_pickle()
+
+        except Exception as e:
+            print(f"Error: {e}")
+            log_error(f"Error: {e}")

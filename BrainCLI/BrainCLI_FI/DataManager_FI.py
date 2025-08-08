@@ -74,9 +74,19 @@ class SaveToFile:
             log_error(e)
 
     def save_weights(self, brainnetwork, path):
-        with open(path, "wb") as f:
-            pickle.dump(brainnetwork.get_weights(), f)
+        try:
+            with open(path, "wb") as f:
+                pickle.dump(brainnetwork.get_weights(), f)
+
+        except Exception as e:
+            print(f"Virhe tallennettaessa modelle: {e}")
+            log_error(f"Virhe tallennettaessa modelle: {e}")
 
     def load_weights(self, brainnetwork, path):
-        with open(path, "rb") as f:
-            brainnetwork.set_weights(pickle.load(f))
+        try:
+            with open(path, "rb") as f:
+                brainnetwork.set_weights(pickle.load(f))
+
+        except Exception as e:
+            print(f"Virhe ladattaessa modelle: {e}")
+            log_error(f"Virhe ladattaessa modelle: {e}")

@@ -15,9 +15,11 @@ limitations under the License.
 '''
 # This project uses model weights licensed under CC BY 4.0 (see /Models/LICENSE)
 
+
 import math
 import random
 from BrainCLI.BrainCLI_EN.Tokenizer_EN import tokens
+from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
 
 token2id = {tok: i for i, tok in enumerate(tokens)}
 id2token = {i: tok for tok, i in token2id.items()}
@@ -59,18 +61,25 @@ def argmax(probs):
             return i
     return 0
 
-def decode(vektori, max_len=10):
-    h = list(vektori)
-    token_id = token2id["<START>"]
-    output = []
-    for _ in range(max_len):
-        x = W_embed[token_id]
-        h = vec_tanh(vec_add(matvec_dot(W_in, x), vec_add(matvec_dot(W_hh, h), b_h)))
-        logits = vec_add(matvec_dot(W_out, h), b_out)
-        probs = softmax(logits)
-        token_id = argmax(probs)
-        word = id2token[token_id]
-        if word == "<END>":
-            break
-        output.append(word)
-    return " ".join(output)
+def decode(vector, max_len=10):
+    try:
+        h = list(vector)
+        token_id = token2id["<START>"]
+        output = []
+        for _ in range(max_len):
+            x = W_embed[token_id]
+            h = vec_tanh(vec_add(matvec_dot(W_in, x), vec_add(matvec_dot(W_hh, h), b_h)))
+            logits = vec_add(matvec_dot(W_out, h), b_out)
+            probs = softmax(logits)
+            token_id = argmax(probs)
+            word = id2token[token_id]
+            if word == "<END>":
+                break
+            if word not in ("<PAD>", "<START>", "<END>", "<UNK>", "<SEP>", "<CLS>"):
+                output.append(word)
+        return " ".join(output)
+
+    except Exception as e:
+        print(f"Error decoding: {e}")
+        log_error(f"Error decoding: {e}")
+        return "<ERROR>"

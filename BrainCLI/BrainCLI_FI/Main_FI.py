@@ -115,18 +115,23 @@ class Program:
             log_error(f"Virhe kysymyksen käsittelyssä: {e}")
 
     def collect_feedback(self, question):
-        satisfaction = input("Oliko vastaus tyydyttävä? (k/e): ").strip().lower()
-        if satisfaction == "k":
-            self.slow_type("Kiitos palautteestasi!")
-        elif satisfaction == "e":
-            correct_answer = input("Anna oikea vastaus: ").strip()
-            if correct_answer:
-                self.ai_engine.update_knowledge(question, correct_answer)
-                self.slow_type("Kiitos! Tallensin uuden vastauksen.")
+        try:
+            satisfaction = input("Oliko vastaus tyydyttävä? (k/e): ").strip().lower()
+            if satisfaction == "k":
+                self.slow_type("Kiitos palautteestasi!")
+            elif satisfaction == "e":
+                correct_answer = input("Anna oikea vastaus: ").strip()
+                if correct_answer:
+                    self.ai_engine.update_knowledge(question, correct_answer)
+                    self.slow_type("Kiitos! Tallensin uuden vastauksen.")
+                else:
+                    self.slow_type("Ei tallennettu, koska vastaus jäi tyhjäksi.")
             else:
-                self.slow_type("Ei tallennettu, koska vastaus jäi tyhjäksi.")
-        else:
-            self.slow_type("Palaute ei ollut kelvollinen, jatketaan normaalisti.")
+                self.slow_type("Palaute ei ollut kelvollinen, jatketaan normaalisti.")
+
+        except Exception as e:
+            print(f"Virhe palautteen käsittelyssä: {e}")
+            log_error(f"Virhe palautteen käsittelyssä: {e}")
 
     @staticmethod
     def is_math_expression(expr):

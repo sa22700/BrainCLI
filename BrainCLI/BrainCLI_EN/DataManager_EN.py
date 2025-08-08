@@ -15,6 +15,7 @@ limitations under the License.
 '''
 # This project uses model weights licensed under CC BY 4.0 (see /Models/LICENSE)
 
+
 import pickle
 import os
 from BrainCLI.BrainCLI_EN.Utils_EN import normalize_text
@@ -71,9 +72,19 @@ class SaveToFile:
             log_error(e)
 
     def save_weights(self, brainnetwork, path):
-        with open(path, "wb") as f:
-            pickle.dump(brainnetwork.get_weights(), f)
+        try:
+            with open(path, "wb") as f:
+                pickle.dump(brainnetwork.get_weights(), f)
+
+        except Exception as e:
+            print(f"Error saving weights: {e}")
+            log_error(f"Error saving weights: {e}")
 
     def load_weights(self, brainnetwork, path):
-        with open(path, "rb") as f:
-            brainnetwork.set_weights(pickle.load(f))
+        try:
+            with open(path, "rb") as f:
+                brainnetwork.set_weights(pickle.load(f))
+
+        except Exception as e:
+            print(f"Error loading weights: {e}")
+            log_error(f"Error loading weights: {e}")

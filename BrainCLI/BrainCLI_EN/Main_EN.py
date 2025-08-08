@@ -15,6 +15,7 @@ limitations under the License.
 '''
 # This project uses model weights licensed under CC BY 4.0 (see /Models/LICENSE)
 
+
 import os
 import sys
 import time
@@ -44,13 +45,13 @@ class Program:
             except Exception as e:
                 print(f"Loading weights file failed (reason: {e}) – training the neural network...")
                 os.remove(weights_path)
-                self.ai_engine.train_network(epochs=3, learning_rate=0.000001)
+                self.ai_engine.train_network(epochs=1, learning_rate=0.000001)
                 print("Saving weights to file...")
                 self.ai_engine.data_manager.save_weights(self.ai_engine.nn, weights_path)
                 print("Weights saved.")
         else:
             print("Training the neural network...")
-            self.ai_engine.train_network(epochs=3, learning_rate=0.000001)
+            self.ai_engine.train_network(epochs=1, learning_rate=0.000001)
             print("Saving weights to file...")
             self.ai_engine.data_manager.save_weights(self.ai_engine.nn, weights_path)
             print("Weights saved.")
@@ -112,18 +113,23 @@ class Program:
             log_error(f"Error handling the question: {e}")
 
     def collect_feedback(self, question):
-        satisfaction = input("Was the answer satisfactory? (y/n): ").strip().lower()
-        if satisfaction == "y":
-            self.slow_type("Thank you for your feedback!")
-        elif satisfaction == "n":
-            correct_answer = input("Please provide the correct answer: ").strip()
-            if correct_answer:
-                self.ai_engine.update_knowledge(question, correct_answer)
-                self.slow_type("Thank you! I have saved the new answer.")
+        try:
+            satisfaction = input("Was the answer satisfactory? (y/n): ").strip().lower()
+            if satisfaction == "y":
+                self.slow_type("Thank you for your feedback!")
+            elif satisfaction == "n":
+                correct_answer = input("Please provide the correct answer: ").strip()
+                if correct_answer:
+                    self.ai_engine.update_knowledge(question, correct_answer)
+                    self.slow_type("Thank you! I have saved the new answer.")
+                else:
+                    self.slow_type("Not saved because the answer was left blank.")
             else:
-                self.slow_type("Not saved because the answer was left blank.")
-        else:
-            self.slow_type("Feedback not valid, continuing as normal.")
+                self.slow_type("Feedback not valid, continuing as normal.")
+
+        except Exception as e:
+            print(f"Error collecting feedback: {e}")
+            log_error(f"Error collecting feedback: {e}")
 
     @staticmethod
     def is_math_expression(expr):

@@ -15,7 +15,9 @@ limitations under the License.
 '''
 # This project uses model weights licensed under CC BY 4.0 (see /Models/LICENSE)
 
+
 from collections import Counter
+from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
 import pickle
 import os
 
@@ -26,6 +28,14 @@ def gen_tokens(data):
     special_tokens = ["<PAD>", "<START>", "<END>", "<UNK>", "<SEP>", "<CLS>"]
     return special_tokens + most_common
 
-data = pickle.load(open(os.path.join(os.path.dirname(__file__), '../Models/braindata.en.pkl'), 'rb'))
-all_data = data["questions"] + data["answers"]
-tokens = gen_tokens(all_data)
+try:
+    data_path = os.path.join(os.path.dirname(__file__), '../Models/braindata.en.pkl')
+    with open(data_path, "rb") as f:
+        data = pickle.load(f)
+    all_data = data["questions"] + data["answers"]
+    tokens = gen_tokens(all_data)
+
+except Exception as e:
+    print(f"Error generating tokens: {e}")
+    log_error(e)
+    tokens = ["<PAD>", "<START>", "<END>", "<UNK>", "<SEP>", "<CLS>"]

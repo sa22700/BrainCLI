@@ -15,8 +15,10 @@ limitations under the License.
 '''
 # This project uses model weights licensed under CC BY 4.0 (see /Models/LICENSE)
 
+
 from array import array
 from operator import mul
+from BrainCLI.BrainCLI_FI.Debug_Log_FI import log_error
 import ctypes
 import os
 
@@ -76,6 +78,21 @@ def gpu_subtract(a, b, n, m):
     )
     return [[float(c_flat[i * m + j]) for j in range(m)] for i in range(n)]
 
+def gpu_elementwise_multiply(a, b, n, m):
+    a_flat = array('f', flatten([list(row) for row in a]))
+    b_flat = array('f', flatten([list(row) for row in b]))
+    c_flat = array('f', [0.0] * (n * m))
+    ptr_f = ctypes.POINTER(ctypes.c_float)
+    lib.matmply.argtypes = [ptr_f, ptr_f, ptr_f, ctypes.c_int, ctypes.c_int]
+    lib.matmply.restype = None
+    lib.matmply(
+        ctypes.cast(a_flat, ptr_f),
+        ctypes.cast(b_flat, ptr_f),
+        ctypes.cast(c_flat, ptr_f),
+        n, m
+    )
+    return [[float(c_flat[i * m + j]) for j in range(m)] for i in range(n)]
+
 def clip_matrix(mat, min_val, max_val):
     for row in mat.rows:
         for i in range(len(row)):
@@ -126,9 +143,16 @@ class BrainMatrix:
         return [list(row) for row in self._rows]
 
     def array_dot(self, other: 'BrainMatrix') -> 'BrainMatrix':
-        if self.shape[1] != other.shape[0]:
-            raise ValueError("Matriisien koot eivät ole sama.")
-        if self.use_gpu or getattr(other, "use_gpu", False):
+        try:
+            if self.shape[1] != other.shape[0]:
+                raise ValueError("Matriisien koot eivät ole sama.")
+
+        except Exception as e:
+            print(f"Virhe: {e}")
+            log_error(f"Virhe: {e}")
+            raise
+
+        if (self.use_gpu or getattr(other, "use_gpu", False)) and lib is not None and hasattr(lib, "matmul"):
             if lib is not None:
                 n, m = self.shape
                 _, k = other.shape
@@ -139,9 +163,16 @@ class BrainMatrix:
         return BrainMatrix(result)
 
     def array_add(self, other: 'BrainMatrix') -> 'BrainMatrix':
-        if self.shape != other.shape:
-            raise ValueError("Matriisien koot eivät täsmää yhteenlaskuun.")
-        if (self.use_gpu or getattr(other, "use_gpu", False)) and lib is not None:
+        try:
+            if self.shape != other.shape:
+                raise ValueError("Matriisien koot eivät täsmää yhteenlaskuun.")
+
+        except Exception as e:
+            print(f"Virhe: {e}")
+            log_error(f"Virhe: {e}")
+            raise
+
+        if (self.use_gpu or getattr(other, "use_gpu", False)) and lib is not None and hasattr(lib, "addmat"):
             n, m = self.shape
             result = gpu_add(self._rows, other._rows, n, m)
             return BrainMatrix(result, use_gpu=True)
@@ -151,9 +182,16 @@ class BrainMatrix:
         return BrainMatrix(result)
 
     def array_subtract(self, other: 'BrainMatrix') -> 'BrainMatrix':
-        if self.shape != other.shape:
-            raise ValueError("Matriisien koot eivät täsmää vähennyslaskuun.")
-        if (self.use_gpu or getattr(other, "use_gpu", False)) and lib is not None:
+        try:
+            if self.shape != other.shape:
+                raise ValueError("Matriisien koot eivät täsmää vähennyslaskuun.")
+
+        except Exception as e:
+            print(f"Virhe: {e}")
+            log_error(f"Virhe: {e}")
+            raise
+
+        if (self.use_gpu or getattr(other, "use_gpu", False)) and lib is not None and lib is not None and hasattr(lib, "matsub"):
             n, m = self.shape
             result = gpu_subtract(self._rows, other._rows, n, m)
             return BrainMatrix(result, use_gpu=True)
@@ -168,8 +206,19 @@ class BrainMatrix:
         return BrainMatrix(result)
 
     def elementwise_multiply(self, other: 'BrainMatrix') -> 'BrainMatrix':
-        if self.shape != other.shape:
-            raise ValueError("Matriisien koot eivät ole sama.")
+        try:
+            if self.shape != other.shape:
+                raise ValueError("Matriisien koot eivät ole sama.")
+        except Exception as e:
+            print(f"Error: {e}")
+            log_error(f"Error: {e}")
+            raise
+
+        if (self.use_gpu or getattr(other, "use_gpu", False)) and lib is not None and hasattr(lib, "matmply"):
+            n, m = self.shape
+            result = gpu_elementwise_multiply(self._rows, other._rows, n, m)
+            return BrainMatrix(result, use_gpu=True)
+
         result = [[r[i] * o[i]
                    for i in range(self.shape[1])]
                   for r, o in zip(self._rows, other._rows)]

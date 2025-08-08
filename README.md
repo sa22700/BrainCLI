@@ -89,6 +89,15 @@ Nyt PowerShell käyttää aina UTF-8-koodausta, ja erikoismerkkien pitäisi toim
 
 ---
 
+Jos sinulla on CUDA-yhteensopiva GPU, voit nopeuttaa vastausten generointia kääntämällä
+CUDA-ytimet /Models kansiossa seuraavalla komennolla:
+
+nvcc -Xcompiler -fPIC -shared Matrix_Add.cu Matrix_Dot.cu Matrix_Sub.cu Matrix_MPly.cu -o libmatrix.so
+
+Näin otat käyttöön GPU-kiihdytetyt matriisioperaatiot ja nopeutat vastausaikaa huomattavasti.
+
+---
+
 ** Aja komennolla:
 
 python Main.py
@@ -192,6 +201,16 @@ You can bypass this restriction with the following command.
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 Now PowerShell will always use UTF-8, and special characters should work correctly in PyPy.
+
+---
+
+If uou have a Cuda-capable GPU, you can speed up answer generation by compiling the CUDA
+kernels in the /Models directory with the following command:
+
+nvcc -Xcompiler -fPIC -shared Matrix_Add.cu Matrix_Dot.cu Matrix_Sub.cu Matrix_MPly.cu -o libmatrix.so
+
+So this will enable acceleration for matrix operations and making answer generation 
+significantly faster.
 
 ---
 
