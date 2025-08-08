@@ -46,13 +46,13 @@ class Program:
             except Exception as e:
                 print("Painotiedoston lataus epäonnistui (syy: {}) – koulutetaan neuroverkko...".format(e))
                 os.remove(weights_path)
-                self.ai_engine.train_network(epochs=3, learning_rate=0.00001)
+                self.ai_engine.train_network(epochs=1, learning_rate=0.00001)
                 print("Tallennetaan painot tiedostoon...")
                 self.ai_engine.data_manager.save_weights(self.ai_engine.nn, weights_path)
                 print("Painot tallennettu.")
         else:
             print("Koulutetaan neuroverkko...")
-            self.ai_engine.train_network(epochs=3, learning_rate=0.00001)
+            self.ai_engine.train_network(epochs=1, learning_rate=0.00001)
             print("Tallennetaan painot tiedostoon...")
             self.ai_engine.data_manager.save_weights(self.ai_engine.nn, weights_path)
             print("Painot tallennettu.")
