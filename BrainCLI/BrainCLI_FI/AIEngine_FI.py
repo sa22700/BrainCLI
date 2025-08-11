@@ -116,7 +116,8 @@ class AIEngine:
                     else:
                         eta_str = "--:--"
                     print(f"\rEpoch {epoch + 1}/{epochs}: {percent} % (ETA: {eta_str})", end="")
-            print(f"\nEpoch {epoch + 1}/{epochs}, loss: {total_loss / N}")
+                print()
+            print(f"Epoch {epoch + 1}/{epochs}, loss: {total_loss / N}")
 
     def update_knowledge(self, question, answer):
         try:
