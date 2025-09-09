@@ -1,18 +1,18 @@
-'''
+"""
 Copyright [2025] [Pirkka Toivakka]
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+    https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 # This project uses model weights licensed under CC BY 4.0 (see /Models/LICENSE)
 
 
@@ -73,7 +73,8 @@ class SaveToFile:
             print(f"Virhe tallennettaessa Pickle-tiedostoon: {e}")
             log_error(e)
 
-    def save_weights(self, brainnetwork, path):
+    @staticmethod
+    def save_weights(brainnetwork, path):
         try:
             with open(path, "wb") as f:
                 pickle.dump(brainnetwork.get_weights(), f)
@@ -82,7 +83,8 @@ class SaveToFile:
             print(f"Virhe tallennettaessa modelle: {e}")
             log_error(f"Virhe tallennettaessa modelle: {e}")
 
-    def load_weights(self, brainnetwork, path):
+    @staticmethod
+    def load_weights(brainnetwork, path):
         try:
             with open(path, "rb") as f:
                 brainnetwork.set_weights(pickle.load(f))

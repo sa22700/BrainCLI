@@ -16,15 +16,23 @@ limitations under the License.
 # This project uses model weights licensed under CC BY 4.0 (see /Models/LICENSE)
 
 
-class ContextMemory:
-    def __init__(self):
-        self.listed_history = []
+class BrainRandom:
+    def __init__(self, seed=12345):
+        self.state = seed
 
-    def add_to_context(self, question, answer):
-        self.listed_history.append((question, answer))
+    def set_seed(self, new_seed):
+        self.state = new_seed
 
-    def get_last_question(self):
-        return self.listed_history[-1][0] if self.listed_history else None
+    def rand(self):
+        self.state = (1664525 * self.state + 1013904223) % (2 ** 32)
+        return self.state / (2 ** 32)
 
-    def get_last_answer(self):
-        return self.listed_history[-1][1] if self.listed_history else None
+    def uniform(self, min_val, max_val):
+        return min_val + (max_val - min_val) * self.rand()
+
+    def random_matrix(self, shape, min_val=-0.01, max_val=0.01):
+        return [[self.uniform(min_val, max_val)
+                 for _ in range(shape[1])]
+                for _ in range(shape[0])]
+
+brain_random = BrainRandom()

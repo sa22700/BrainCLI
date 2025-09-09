@@ -1,18 +1,18 @@
-'''
+"""
 Copyright [2025] [Pirkka Toivakka]
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+    https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 # This project uses model weights licensed under CC BY 4.0 (see /Models/LICENSE)
 
 
@@ -21,10 +21,11 @@ import time
 from BrainCLI.BrainCLI_EN.DataManager_EN import SaveToFile
 from BrainCLI.BrainCLI_EN.FuzzySearcher_EN import FuzzySearch
 from BrainCLI.BrainCLI_EN.Vectorizer_EN import BrainVectorizer
-from BrainCLI.BrainCLI_EN.MatrixArray_EN import BrainNetwork, BrainLayer
 from BrainCLI.BrainCLI_EN.Utils_EN import normalize_text
 from BrainCLI.BrainCLI_EN.Decoder_EN import decode
 from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
+from BrainCLI.BrainCLI_EN.BrainNetwork_EN import BrainNetwork
+from BrainCLI.BrainCLI_EN.BrainLayer_EN import BrainLayer
 
 def cosine_similarity(v1, v2):
     dot = sum(a * b for a, b in zip(v1, v2))
@@ -87,7 +88,7 @@ class AIEngine:
             return
         for epoch in range(epochs):
             total_loss = 0
-            N = len(questions)
+            n = len(questions)
             start_time = time.time()
             for i, (q, a) in enumerate(zip(questions, answers)):
                 try:
@@ -106,18 +107,18 @@ class AIEngine:
                     log_error(f"Error: {e}")
                     continue
 
-                if (i % (N // 100 + 1) == 0) or (i == N - 1):
-                    percent = int(100 * (i + 1) / N)
+                if (i % (n // 100 + 1) == 0) or (i == n - 1):
+                    percent = int(100 * (i + 1) / n)
                     elapsed = time.time() - start_time
                     if i > 0:
-                        eta = (elapsed / (i + 1)) * (N - i - 1)
+                        eta = (elapsed / (i + 1)) * (n - i - 1)
                         mins, secs = divmod(int(eta), 60)
                         eta_str = f"{mins:02d}:{secs:02d}"
                     else:
                         eta_str = "--:--"
                     print(f"\rEpoch {epoch + 1}/{epochs}: {percent} % (ETA: {eta_str})", end="")
                 print()
-            print(f"Epoch {epoch + 1}/{epochs}, loss: {total_loss / N}")
+            print(f"Epoch {epoch + 1}/{epochs}, loss: {total_loss / n}")
 
     def update_knowledge(self, question, answer):
         try:
