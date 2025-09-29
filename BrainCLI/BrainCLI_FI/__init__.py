@@ -34,7 +34,8 @@ import BrainCLI.BrainCLI_FI.BrainNetwork_FI
 import BrainCLI.BrainCLI_FI.BrainLayer_FI
 import BrainCLI.BrainCLI_FI.BrainMatrix_FI
 import BrainCLI.BrainCLI_FI.BrainRandom_FI
+import BrainCLI.BrainCLI_FI.Request_FI
 
 __all__ = ["AIEngine_FI", "Cuda_Path_FI", "FuzzySearcher_FI", "DataManager_FI", "Utils_FI", "Main_FI", "Utils_FI", "Vectorizer_FI",
            "Debug_Log_FI", "Calculate_FI", "Randomizer_FI", "ContextList_FI", "Decoder_FI", "Tokenizer_FI", "BrainNetwork_FI",
-           "BrainLayer_FI", "BrainMatrix_FI", "BrainRandom_FI"]
+           "BrainLayer_FI", "BrainMatrix_FI", "BrainRandom_FI", "Request_FI"]

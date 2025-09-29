@@ -120,8 +120,13 @@ class SafeEval(ast.NodeVisitor):
         else:
             raise TypeError(f"Solmutyyppi ei sallittu: {type(node).__name__}")
 
+TOKEN_PATTERN = re.compile(
+    r"^\s*(?:[0-9]+(?:[.,][0-9]+)?|ans|pi|e|π|[+\-*/^()%√]|\s)+\s*$",
+    re.IGNORECASE,
+)
+
 def is_math_expression(text: str) -> bool:
-    return re.fullmatch(r"[A-Za-zπ\d\s+*/().,^%!\-]+", text) is not None
+    return bool(TOKEN_PATTERN.fullmatch(text or ""))
 
 _LAST_RESULT = 0.0
 

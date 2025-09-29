@@ -19,7 +19,7 @@ limitations under the License.
 import ast
 import math
 import re
-from BrainCLI.BrainCLI_FI.Debug_Log_FI import log_error
+from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
 
 def deg(x):    return math.radians(x)
 def rad(x):    return x
@@ -60,6 +60,7 @@ _ALLOWED_FUNCS = {
         "sqrt", "log", "log10", "exp",
         "ceil", "floor", "fabs"
     ]},
+
     "deg": deg,
     "rad": rad,
     "fact": fact,
@@ -119,8 +120,13 @@ class SafeEval(ast.NodeVisitor):
         else:
             raise TypeError(f"Node type not allowed: {type(node).__name__}")
 
+TOKEN_PATTERN = re.compile(
+    r"^\s*(?:[0-9]+(?:[.,][0-9]+)?|ans|pi|e|π|[+\-*/^()%√]|\s)+\s*$",
+    re.IGNORECASE,
+)
+
 def is_math_expression(text: str) -> bool:
-    return re.fullmatch(r"[A-Za-zπ\d\s+*/().,^%!\-]+", text) is not None
+    return bool(TOKEN_PATTERN.fullmatch(text or ""))
 
 _LAST_RESULT = 0.0
 

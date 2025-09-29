@@ -24,14 +24,17 @@ from BrainCLI.BrainCLI_EN.Calculate_EN import is_math_expression, command_calcul
 from BrainCLI.BrainCLI_EN.Randomizer_EN import command_random_fact
 from BrainCLI.BrainCLI_EN.AIEngine_EN import AIEngine
 from BrainCLI.BrainCLI_EN.ContextList_EN import ContextMemory
+from BrainCLI.BrainCLI_EN.Request_EN import fetch_url
+
 
 class Program:
-    def __init__(self, data_file="../Models/braindata.en.pkl"):
+    def __init__(self, data_file="../Models/braindata.fi.pkl"):
         data_path = os.path.join(os.path.dirname(__file__), data_file)
-        weights_path = os.path.join(os.path.dirname(data_path), "../Models/weights.en.pkl")
+        weights_path = os.path.join(os.path.dirname(data_path), "../Models/weights.fi.pkl")
         self.ai_engine = AIEngine(data_path)
         self.context_memory = ContextMemory()
         self.commands = {
+            "calc": command_calculate,
             "calculate": command_calculate,
             "fact": command_random_fact,
             "trivia": command_random_fact,
@@ -41,17 +44,16 @@ class Program:
                 print("Loading neural network weights from file...")
                 self.ai_engine.data_manager.load_weights(self.ai_engine.nn, weights_path)
                 print("Weights loaded.")
-
             except Exception as e:
-                print(f"Loading weights file failed (reason: {e}) – training the neural network...")
+                print(f"Loading weights file failed (reason: {e}) – training neural network...")
                 os.remove(weights_path)
-                self.ai_engine.train_network(epochs=1, learning_rate=0.000001)
+                self.ai_engine.train_network(epochs=1, learning_rate=0.00001)
                 print("Saving weights to file...")
                 self.ai_engine.data_manager.save_weights(self.ai_engine.nn, weights_path)
                 print("Weights saved.")
         else:
-            print("Training the neural network...")
-            self.ai_engine.train_network(epochs=1, learning_rate=0.000001)
+            print("Training neural network...")
+            self.ai_engine.train_network(epochs=1, learning_rate=0.00001)
             print("Saving weights to file...")
             self.ai_engine.data_manager.save_weights(self.ai_engine.nn, weights_path)
             print("Weights saved.")
@@ -66,38 +68,63 @@ class Program:
 
     def run(self):
         try:
-            self.slow_type("Hello! I am BrainCLI.\nAsk me anything!")
+            self.slow_type("Hi! I'm BrainCLI.\nAsk me anything!")
             while True:
-                user_input = input("\n> ").strip().lower()
-                if not user_input:
-                    self.slow_type("You didn't enter anything. Please try again.")
+                raw_input_ = input("\n> ").strip()
+                if not raw_input_:
+                    self.slow_type("You didn't type anything. Try again.")
                     continue
-                if user_input in ["exit", "quit", "q"]:
-                    self.slow_type("Program will exit. Thank you for using it!")
+                low = raw_input_.lower()
+                if low in ["lopeta", "poistu", "exit", "quit", "q"]:
+                    self.slow_type("Exiting. Thanks for using BrainCLI!")
                     break
                 else:
-                    self.handle_question(user_input)
+                    self.handle_question(raw_input_)
 
         except KeyboardInterrupt:
-            self.slow_type("\nProgram interrupted. Thank you for using it!")
+            self.slow_type("\nProgram interrupted. Thanks for using BrainCLI!")
 
         except Exception as e:
-            print(f"Error running the program: {e}")
-            log_error(f"Error running the program: {e}")
+            print(f"Error running program: {e}")
+            log_error(f"Error running program: {e}")
 
     def handle_question(self, question):
         try:
+            low = question.lower()
+            if low == "search" or low.startswith("search ") or low == "search" or low.startswith("search "):
+                if low.startswith("search"):
+                    args = question[len("search"):].strip()
+                else:
+                    args = question[len("search"):].strip()
+                if not args:
+                    try:
+                        self.slow_type("Search the web: ")
+                        args = input().strip()
+
+                    except (EOFError, KeyboardInterrupt):
+                        self.slow_type("Cancelled.")
+                        return
+                if not args or args.lower() in ("cancel", "q", "quit"):
+                    self.slow_type("Cancelled.")
+                    return
+                result = fetch_url(args)
+                self.slow_type(result)
+                self.context_memory.add_to_context(f"search {args}", result)
+                return
             for command, function in self.commands.items():
-                if question.startswith(command):
+                if low.startswith(command):
                     args = question[len(command):].strip()
-                    result = function(args) if args else function()
+                    result = function(args)
                     self.slow_type(result)
                     self.context_memory.add_to_context(question, result)
                     return
             if is_math_expression(question):
-                self.slow_type("It looks like your input is a mathematical expression.\nWould you like me to calculate it for you? (y/n)")
+                self.slow_type(
+                    "It looks like your input is a math expression.\n"
+                    "Do you want me to calculate it? (y/n)"
+                )
                 confirmation = input("> ").strip().lower()
-                if confirmation.startswith("y"):
+                if confirmation.startswith(("y", "k")):
                     result = command_calculate(question)
                     self.slow_type(result)
                     self.context_memory.add_to_context(question, result)
@@ -109,27 +136,27 @@ class Program:
             self.collect_feedback(question)
 
         except Exception as e:
-            print(f"Error handling the question: {e}")
-            log_error(f"Error handling the question: {e}")
+            print(f"Error handling question: {e}")
+            log_error(f"Error handling question: {e}")
 
     def collect_feedback(self, question):
         try:
             satisfaction = input("Was the answer satisfactory? (y/n): ").strip().lower()
             if satisfaction == "y":
-                self.slow_type("Thank you for your feedback!")
+                self.slow_type("Thanks for your feedback!")
             elif satisfaction == "n":
-                correct_answer = input("Please provide the correct answer: ").strip()
+                correct_answer = input("Provide the correct answer: ").strip()
                 if correct_answer:
                     self.ai_engine.update_knowledge(question, correct_answer)
-                    self.slow_type("Thank you! I have saved the new answer.")
+                    self.slow_type("Thanks! I saved the new answer.")
                 else:
-                    self.slow_type("Not saved because the answer was left blank.")
+                    self.slow_type("Not saved because the answer was empty.")
             else:
-                self.slow_type("Feedback not valid, continuing as normal.")
+                self.slow_type("Feedback not recognized; continuing.")
 
         except Exception as e:
-            print(f"Error collecting feedback: {e}")
-            log_error(f"Error collecting feedback: {e}")
+            print(f"Error handling feedback: {e}")
+            log_error(f"Error handling feedback: {e}")
 
     @staticmethod
     def is_math_expression(expr):

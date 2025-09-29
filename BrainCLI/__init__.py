@@ -34,6 +34,7 @@ import BrainCLI.BrainCLI_FI.BrainMatrix_FI
 import BrainCLI.BrainCLI_FI.BrainLayer_FI
 import BrainCLI.BrainCLI_FI.BrainNetwork_FI
 import BrainCLI.BrainCLI_FI.BrainRandom_FI
+import BrainCLI.BrainCLI_FI.Request_FI
 
 import BrainCLI.BrainCLI_EN.AIEngine_EN
 import BrainCLI.BrainCLI_EN.Cuda_Path_EN
@@ -53,5 +54,6 @@ import BrainCLI.BrainCLI_EN.BrainMatrix_EN
 import BrainCLI.BrainCLI_EN.BrainLayer_EN
 import BrainCLI.BrainCLI_EN.BrainNetwork_EN
 import BrainCLI.BrainCLI_EN.BrainRandom_EN
+import BrainCLI.BrainCLI_EN.Request_EN
 
 __all__ = ["BrainCLI_FI", "BrainCLI_EN"]

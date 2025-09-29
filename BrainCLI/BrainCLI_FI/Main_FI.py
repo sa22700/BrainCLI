@@ -24,7 +24,7 @@ from BrainCLI.BrainCLI_FI.Calculate_FI import is_math_expression, command_calcul
 from BrainCLI.BrainCLI_FI.Randomizer_FI import command_random_fact
 from BrainCLI.BrainCLI_FI.AIEngine_FI import AIEngine
 from BrainCLI.BrainCLI_FI.ContextList_FI import ContextMemory
-
+from BrainCLI.BrainCLI_FI.Request_FI import fetch_url
 
 class Program:
     def __init__(self, data_file="../Models/braindata.fi.pkl"):
@@ -69,15 +69,16 @@ class Program:
         try:
             self.slow_type("Hei! Minä olen BrainCLI.\nKysy mitä tahansa!")
             while True:
-                user_input = input("\n> ").strip().lower()
-                if not user_input:
+                raw_input = input("\n> ").strip()
+                if not raw_input:
                     self.slow_type("Et syöttänyt mitään. Kokeile uudestaan.")
                     continue
-                if user_input in ["lopeta", "poistu", "q"]:
+                low = raw_input.lower()
+                if low in ["lopeta", "poistu", "q"]:
                     self.slow_type("Ohjelma suljetaan. Kiitos käytöstä!")
                     break
                 else:
-                    self.handle_question(user_input)
+                    self.handle_question(raw_input)
 
         except KeyboardInterrupt:
             self.slow_type("\nOhjelma keskeytettiin. Kiitos käytöstä!")
@@ -88,16 +89,34 @@ class Program:
 
     def handle_question(self, question):
         try:
+            low = question.lower()
+            if low == "hae" or low.startswith("hae "):
+                args = question[len("hae"):].strip()
+                if not args:
+                    try:
+                        self.slow_type("Hae verkosta: ")
+                        args = input().strip()
+
+                    except (EOFError, KeyboardInterrupt):
+                        self.slow_type("Peruutettu.")
+                        return
+                if not args or args.lower() in ("peru", "peruuta", "cancel", "q", "quit"):
+                    self.slow_type("Peruutettu.")
+                    return
+                result = fetch_url(args)
+                self.slow_type(result)
+                self.context_memory.add_to_context(f"hae {args}", result)
+                return
             for command, function in self.commands.items():
-                if question.startswith(command):
+                if low.startswith(command):
                     args = question[len(command):].strip()
-                    result = function(args) if args else function()
+                    result = function(args)
                     self.slow_type(result)
                     self.context_memory.add_to_context(question, result)
                     return
             if is_math_expression(question):
                 self.slow_type("Näyttää siltä, että syötteessäsi on matemaattinen laskutoimitus."
-                    "\nHaluatko, että lasken sen puolestasi? (k/e)")
+                               "\nHaluatko, että lasken sen puolestasi? (k/e)")
                 confirmation = input("> ").strip().lower()
                 if confirmation.startswith("k"):
                     result = command_calculate(question)
@@ -138,6 +157,7 @@ class Program:
         try:
             eval(expr, {"__builtins__": None}, {})
             return True
+
         except:
             return False
 
