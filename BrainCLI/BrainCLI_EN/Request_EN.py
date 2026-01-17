@@ -29,6 +29,11 @@ from typing import Dict, List, Tuple, Optional
 from urllib.error import HTTPError, URLError
 from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
 DEFAULT_BASE_URL = os.environ.get("BRAINCLI_SEARCH_URL", "").strip()
 MULTI_BASE_URLS = [u.strip() for u in os.environ.get("BRAINCLI_SEARCH_URLS", "").split(",") if u.strip()]
 DEFAULT_LIMIT    = int(os.environ.get("BRAINCLI_SEARCH_LIMIT", "5"))
@@ -154,7 +159,11 @@ def fetch_url(args: str = "") -> str:
                 }
                 req = urllib.request.Request(url, headers=headers)
                 context = _build_ssl_context() if scheme == "https" else None
-                with urllib.request.urlopen(req, context=context, timeout=REQUEST_TIMEOUT) as resp:
+                handlers = [_NoRedirect()]
+                if scheme == "https":
+                    handlers.append(urllib.request.HTTPSHandler(context=context))
+                opener = urllib.request.build_opener(*handlers)
+                with opener.open(req, timeout=REQUEST_TIMEOUT) as resp:
                     charset = resp.headers.get_content_charset() or "utf-8"
                     raw = resp.read().decode(charset, errors="replace")
                 data = json.loads(raw)

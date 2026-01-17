@@ -18,6 +18,7 @@ limitations under the License.
 
 import pickle
 import os
+import stat
 from BrainCLI.BrainCLI_FI.Utils_FI import normalize_text
 from BrainCLI.BrainCLI_FI.Debug_Log_FI import log_error
 
@@ -30,6 +31,14 @@ class SaveToFile:
         except Exception as e:
             print(f"Virhe SaveToFile-luokan alustuksessa: {e}")
             log_error(e)
+
+    @staticmethod
+    def _assert_safe_file(path: str) -> None:
+        st = os.lstat(path)
+        if stat.S_ISLNK(st.st_mode):
+            raise ValueError("Symlinkkiä ei ladattu")
+        if (st.st_mode & stat.S_IWOTH) != 0:
+            raise ValueError("Tiedostoa ei ladattu")
 
     def initialize_files(self):
         try:

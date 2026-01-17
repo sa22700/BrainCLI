@@ -19,6 +19,7 @@ limitations under the License.
 import os
 import sys
 import time
+import ast
 from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
 from BrainCLI.BrainCLI_EN.Calculate_EN import is_math_expression, command_calculate
 from BrainCLI.BrainCLI_EN.Randomizer_EN import command_random_fact
@@ -28,6 +29,7 @@ from BrainCLI.BrainCLI_EN.Request_EN import fetch_url
 
 
 class Program:
+
     def __init__(self, data_file="../Models/braindata.fi.pkl"):
         data_path = os.path.join(os.path.dirname(__file__), data_file)
         weights_path = os.path.join(os.path.dirname(data_path), "../Models/weights.fi.pkl")
@@ -159,13 +161,27 @@ class Program:
             log_error(f"Error handling feedback: {e}")
 
     @staticmethod
-    def is_math_expression(expr):
+    def is_safe_math_expr(expr: str) -> bool:
+        _ALLOWED_NODES = (
+            ast.Expression,
+            ast.BinOp,
+            ast.UnaryOp,
+            ast.Constant,
+            ast.Add, ast.Sub, ast.Mult, ast.Div, ast.FloorDiv, ast.Mod, ast.Pow,
+            ast.UAdd, ast.USub,
+        )
         try:
-            eval(expr, {"__builtins__": None}, {})
-            return True
-
-        except:
+            tree = ast.parse(expr, mode="eval")
+        except SyntaxError:
             return False
+
+        for node in ast.walk(tree):
+            if not isinstance(node, _ALLOWED_NODES):
+                return False
+            if isinstance(node, ast.Constant) and not isinstance(node.value, (int, float)):
+                return False
+
+        return True
 
 if __name__ == "__main__":
     app = Program()

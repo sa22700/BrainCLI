@@ -18,6 +18,7 @@ limitations under the License.
 
 import pickle
 import os
+import stat
 from BrainCLI.BrainCLI_EN.Utils_EN import normalize_text
 from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
 
@@ -29,6 +30,14 @@ class SaveToFile:
 
         except Exception as e:
             print(f"Error with SaveToFile-class: {e}")
+
+    @staticmethod
+    def _assert_safe_file(path: str) -> None:
+        st = os.lstat(path)
+        if stat.S_ISLNK(st.st_mode):
+            raise ValueError("Refusing to load symlink")
+        if (st.st_mode & stat.S_IWOTH) != 0:
+            raise ValueError("Refusing to load world-writable file")
 
     def initialize_files(self):
         try:

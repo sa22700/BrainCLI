@@ -20,6 +20,14 @@ from collections import Counter
 from BrainCLI.BrainCLI_FI.Debug_Log_FI import log_error
 import pickle
 import os
+import stat
+
+def _assert_safe_file(path: str) -> None:
+    st = os.lstat(path)
+    if stat.S_ISLNK(st.st_mode):
+        raise ValueError("Symlinkkiä ei ladattu")
+    if (st.st_mode & stat.S_IWOTH) != 0:
+        raise ValueError("Tiedostoa ei ladattu")
 
 def gen_tokens(datasheet):
     all_text = " ".join(datasheet).lower()
@@ -28,12 +36,16 @@ def gen_tokens(datasheet):
     special_tokens = ["<PAD>", "<START>", "<END>", "<UNK>", "<SEP>", "<CLS>"]
     return special_tokens + most_common
 
+def load_tokens(_data_path: str) -> list[str]:
+    _assert_safe_file(_data_path)
+    with open(_data_path, "rb") as f:
+        data = pickle.load(f)
+    all_data = data.get("questions", []) + data.get("answers", [])
+    return gen_tokens(all_data)
+
 try:
     data_path = os.path.join(os.path.dirname(__file__), '../Models/braindata.fi.pkl')
-    with open(data_path, "rb") as f:
-        data = pickle.load(f)
-    all_data = data["questions"] + data["answers"]
-    tokens = gen_tokens(all_data)
+    tokens = load_tokens(data_path)
 
 except Exception as e:
     print(f"Virhe generoidessa tokeneja: {e}")

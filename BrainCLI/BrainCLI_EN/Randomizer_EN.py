@@ -17,9 +17,18 @@ limitations under the License.
 
 
 import os
+import stat
 import random
 import pickle
 from BrainCLI.BrainCLI_EN.Debug_Log_EN import log_error
+
+
+def _assert_safe_file(path: str) -> None:
+    st = os.lstat(path)
+    if stat.S_ISLNK(st.st_mode):
+        raise ValueError("Refusing to load symlink")
+    if (st.st_mode & stat.S_IWOTH) != 0:
+        raise ValueError("Refusing to load world-writable file")
 
 def load_facts(filename=os.path.join(os.path.dirname(__file__), "../Models/braindata.en.pkl")):
     try:

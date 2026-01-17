@@ -126,7 +126,13 @@ TOKEN_PATTERN = re.compile(
 )
 
 def is_math_expression(text: str) -> bool:
-    return bool(TOKEN_PATTERN.fullmatch(text or ""))
+    try:
+        expr = _preprocess(text)
+        tree = ast.parse(expr, mode="eval")
+        SafeEval(extra_names={"ans": 0.0}).visit(tree)
+        return True
+    except Exception:
+        return False
 
 _LAST_RESULT = 0.0
 

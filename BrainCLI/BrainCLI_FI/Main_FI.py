@@ -19,6 +19,7 @@ limitations under the License.
 import os
 import sys
 import time
+import ast
 from BrainCLI.BrainCLI_FI.Debug_Log_FI import log_error
 from BrainCLI.BrainCLI_FI.Calculate_FI import is_math_expression, command_calculate
 from BrainCLI.BrainCLI_FI.Randomizer_FI import command_random_fact
@@ -153,13 +154,27 @@ class Program:
             log_error(f"Virhe palautteen käsittelyssä: {e}")
 
     @staticmethod
-    def is_math_expression(expr):
+    def is_safe_math_expr(expr: str) -> bool:
+        _ALLOWED_NODES = (
+            ast.Expression,
+            ast.BinOp,
+            ast.UnaryOp,
+            ast.Constant,
+            ast.Add, ast.Sub, ast.Mult, ast.Div, ast.FloorDiv, ast.Mod, ast.Pow,
+            ast.UAdd, ast.USub,
+        )
         try:
-            eval(expr, {"__builtins__": None}, {})
-            return True
-
-        except:
+            tree = ast.parse(expr, mode="eval")
+        except SyntaxError:
             return False
+
+        for node in ast.walk(tree):
+            if not isinstance(node, _ALLOWED_NODES):
+                return False
+            if isinstance(node, ast.Constant) and not isinstance(node.value, (int, float)):
+                return False
+
+        return True
 
 if __name__ == "__main__":
     app = Program()

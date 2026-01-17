@@ -17,9 +17,17 @@ limitations under the License.
 
 
 import os
+import stat
 import random
 import pickle
 from BrainCLI.BrainCLI_FI.Debug_Log_FI import log_error
+
+def _assert_safe_file(path: str) -> None:
+    st = os.lstat(path)
+    if stat.S_ISLNK(st.st_mode):
+        raise ValueError("Symlinkkiä ei ladattu")
+    if (st.st_mode & stat.S_IWOTH) != 0:
+        raise ValueError("Tiedostoa ei ladattu")
 
 def load_facts(filename=os.path.join(os.path.dirname(__file__), "../Models/braindata.fi.pkl")):
     try:
